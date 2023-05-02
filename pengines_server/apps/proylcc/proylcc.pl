@@ -1,6 +1,6 @@
 :- module(proylcc, 
 	[  
-		join/4, 
+		join/4,               % Evolución de la combinación de celdas del camino
 		suma_camino_pot_dos/3 % Computa el resultado de la suma de un camino
 	]).
 
@@ -17,7 +17,6 @@ join(Grid, _NumOfColumns, _Path, RGrids):-
 	Grid = [N | Ns],	% La implementación actual es simplemente a modo de muestra, y no tiene sentido, debe reepmplazarla
 	N2 is N * 2,		% por una implementación válida.
 	RGrids = [[0 | Ns], [N2 | Ns]].
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Operaciones de generación numérica %
@@ -156,6 +155,19 @@ cambiar_en_pos([R | L], Indice, X, [R | Rs]):-
 	I is Indice - 1;
 	cambiar_en_pos(L, I, X, Rs).
 
+/**
+ * agrupar(+Lista, -ListaAgrupada)
+ * 
+ * Unifica en ListaAgrupada una lista compuesta por los mismos elementos que Lista pero organizada en duplas.
+ *
+ * Ejemplo: Lista = [a, b, c, d, e, f]
+ *          ListaAgrupada = [[a, b], [c, d], [e, f]]
+ */
+agrupar([X1, X2], [[X1, X2]]).
+agrupar([X1 | [X2 | X3]], [Y | Ys]):-
+    Y = [X1, X2],
+    agrupar(X3, Ys).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Operaciones de manipulación de grilla %
@@ -175,11 +187,14 @@ get_elemento(Grilla, Fila, Columna, Elem):-
  * set_suma_grilla(+GrillaVieja, +CantColumnas, +Camino, +Suma, ,-GrillaNueva)
  * 
  * Setea en la última posición del camino la suma computada del camino de elementos de la grilla que se unieron.
+ * Camino es una lista que contiene coordenadas.
  */
 set_suma_grilla(GrillaVieja, CantColumnas, Camino, Suma, GrillaNueva):-
-	ultimo(Camino, [Fila | Col]),
-	ubicacion_en_grilla(Fila, Col, CantColumnas, Pos),
-	cambio_valor(GrillaVieja, Pos, Suma, GrillaNueva).
+	ultimo(Camino, [NroFila | NroCol]),					     % Busco la coordenada correspondiente
+	ubicacion_en_grilla(NroFila, NroCol, CantColumnas, Pos), % Computo la posicion relativa
+	nth0(NroFila, GrillaVieja, FilaEntera),                  % Guardo la fila completa correspondiente a NroFila
+	cambiar_en_pos(FilaEntera, Pos, Suma, FilaAux),          % En la posición Pos de la fila que me guardé, pongo el resultado Suma
+	cambiar_en_pos(GrillaVieja, Pos, FilaAux, GrillaNueva).  % Cambio la fila de la fila NroFila con la fila que contiene la modificación anterior
 
 /**
  * ubicacion_en_grilla(+Fila, +Columna, +CantColumnas, -Pos)
@@ -232,3 +247,25 @@ pos_ceros([0 | Lista], Indice, [Indice | PosCeros]):-
 pos_ceros([_ | Lista], Indice, PosCeros):-
 	IndiceAux is Indice + 1,
 	pos_ceros(Lista, IndiceAux, PosCeros).
+
+/**
+ * pos_ceros_grilla(+Grilla, +GrillaCoordenadas, -Coordenadas)
+ * 
+ * Dada una grilla Grilla con valores numéricos, una GrillaCoordenadas conteniendo coordenadas de la matriz, crea una lista Coordenas que contiene las duplas donde hay elementos que son igual que cero.
+ */
+pos_ceros_grilla(Grilla, GrillaCoordenadas, Coordenadas):-
+	aplanar(Grilla, ListaAplanada),
+	pos_ceros(ListaAplanada, 0, PosCeros),
+	findall(Y, (member(X, PosCeros), unificacion_posIndex_posCoordenadas(GrillaCoordenadas, X, ListaCoordenadas),
+				member(Y, ListaCoordenadas)), CoordenadasCeros),
+	agrupar(CoordenadasCeros, Coordenadas).
+
+/**
+ * unificacion_posIndex_posCoordenadas(+ListaCoordenadas, +Indice, -Coordenada)
+ * 
+ * Computa la coordenada relativa a un indexado de posición de la grilla en juego (ver ubicacion_en_grilla mas arriba)
+ */
+unificacion_posIndex_posCoordenadas([[F, C] | _], 0, [F, C]).
+unificacion_posIndex_posCoordenadas([_ | FCs], Indice, Rta):-
+    I is Indice - 1,
+    unificacion_posIndex_posCoordenadas(FCs, I, Rta).	
