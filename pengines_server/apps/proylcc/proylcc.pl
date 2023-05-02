@@ -146,6 +146,17 @@ cambiar_todas(X, Y, [Z | Zs], [Z | R]) :-
 	Z \= X,
 	cambiar_todas(X, Y, Zs, R).
 
+/**
+ * cambiar_en_pos(+Lista, +Indice, +Valor, -ListaActualizada)
+ * 
+ * Cambia el valor de una posición Pos de la lista Lista por Valor. La modificación se refleja en ListaACtualizada.
+ */
+cambiar_en_pos([_|L], 0, X, [X | L]).
+cambiar_en_pos([R | L], Indice, X, [R | Rs]):-
+	I is Indice - 1;
+	cambiar_en_pos(L, I, X, Rs).
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Operaciones de manipulación de grilla %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -209,7 +220,9 @@ completar_grilla([N | Grilla], LimInferior, LimSuperior, [N | GrillaCompleta]):-
 /**
  * pos_ceros(+Lista, +Indice, -PosCeros).
  * 
- * Computa en una lista las posiciones donde hay ceros. El mapeo de los indices donde los hay corresponden a un orden de posiciones de coordenadas de matriz (ver camino_posiciones más arriba).
+ * Computa en una lista las posiciones donde hay ceros. 
+ * El mapeo de los indices donde los hay corresponden a un orden de posiciones de coordenadas de matriz (ver camino_posiciones más arriba).
+ * Indice determina el inicio del mapeo de posiciones.
  * Lista es una lista conteniendo los elementos de la grilla en forma aplanada.
  */
 pos_ceros([], _, []).
