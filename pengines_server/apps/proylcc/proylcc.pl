@@ -363,3 +363,29 @@ set_ceros_grilla(GrillaVieja, [Primera | Resto], GrillaNueva):-
     cambiar_en_pos(Fila, NroCol, 0, FilaNueva),
     cambiar_en_pos(GrillaVieja, NroFila, FilaNueva, GrillaAux),
     set_ceros_grilla(GrillaAux, Resto, GrillaNueva).
+
+/*
+ * intercambiar(+Grilla, +F1, +C1, +F2, +C2, -GrillaResultante)
+ * 
+ * Dados los valores de dos coordenadas de una grilla, intercambia sus valores.
+ */
+intercambiar(Grilla, Fila1, Col1, Fila2, Col2, GrillaResultante) :-
+	nth0(Fila1, Grilla, Lista1), % Obtener la fila 1
+	nth0(Fila2, Grilla, Lista2), % Obtener la fila 2
+	nth0(Col1, Lista1, Valor1), % Obtener el valor en la columna 1 de la fila 1
+	nth0(Col2, Lista2, Valor2), % Obtener el valor en la columna 2 de la fila 2
+	cambiar_en_pos(Lista1, Col1, Valor2, NuevaLista1), % Reemplazar el valor 1 por el valor 2 en la fila 1
+	cambiar_en_pos(Lista2, Col2, Valor1, NuevaLista2), % Reemplazar el valor 2 por el valor 1 en la fila 2
+	cambiar_en_pos(Grilla, Fila1, NuevaLista1, Temp), % Reemplazar la fila 1 con la nueva fila 1 en la matriz
+	cambiar_en_pos(Temp, Fila2, NuevaLista2, GrillaResultante). % Reemplazar la fila 2 con la nueva fila 2 en la matriz resultante
+	
+/*
+ * intercambiar_arriba(+Grilla, +Fila, +Columna, -GrillaResultante)
+ * 
+ * Dados los valores de una coordenada de una grilla Grilla, intercarmbia su valor con el elemento inmediatamente superior a él
+ */
+intercambiar_arriba(Grilla, 0, _, Grilla).
+intercambiar_arriba(Grilla, Fila, Col, GrillaNueva):-
+    Fila > 0,
+    FilaArriba is Fila - 1,
+    intercambiar(Grilla, Fila, Col, FilaArriba, Col, GrillaNueva).
