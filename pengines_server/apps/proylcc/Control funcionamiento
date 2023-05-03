@@ -1,0 +1,29 @@
+Funcionan:
+gen_random_pot/3
+pot_dos/2
+indice_raiz/2
+generar_rango/3
+get_limite_inferior/2
+suma_camino/3
+suma_camino_pot_dos/3
+max_numero/2
+ultimo/2
+aplanar/2
+camino_posiciones/3
+cambiar_todas/4
+cambiar_en_pos/4
+agrupar/2
+get_elemento/4
+ubicacion_en_grilla/4
+max_grilla/2
+unificacion_en_grilla/3
+pos_ceros_grilla/3
+
+completar_grilla
+pos_ceros/3
+set_suma_grilla/5
+
+Warnings:
+- completar_grilla/4 --> Funciona pero no con un pasaje de grillas, sino con un pasaje de grilla aplanada (lista)
+
+No funcionan:
