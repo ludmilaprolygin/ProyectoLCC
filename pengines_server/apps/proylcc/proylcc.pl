@@ -14,9 +14,22 @@
  */ 
 
 join(Grid, _NumOfColumns, _Path, RGrids):-
+	/*
+	suma_camino_pot_dos(Grid, Path, Suma),
+	set_suma_grilla(Grid, Path, Suma, GrillaSuma),
+	%burbujear_ceros
+	generar_rango(GrillaSuma, LimInferior, LimSuperior),
+	set_ceros_grilla(GrillaSuma, Path, GrillaCeros),
+	reemplazar_ceros(GrillaCeros, LimInferior, LimSuperior, GrillaCompleta),
+	RGrids = [Grid, GrillaCompleta].
+	%RGrids = [Grid, GrillaSuma, GrillaCeros, GrillaCompleta].
+	*/
+	
 	Grid = [N | Ns],	% La implementación actual es simplemente a modo de muestra, y no tiene sentido, debe reepmplazarla
 	N2 is N * 2,		% por una implementación válida.
 	RGrids = [[0 | Ns], [N2 | Ns]].
+    
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Operaciones de generación numérica %
