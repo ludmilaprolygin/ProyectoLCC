@@ -4,7 +4,7 @@
 		suma_camino_pot_dos/3 % Computa el resultado de la suma de un camino
 	]).
 
-:- use_module(library(random)).
+%:- use_module(library(random)).
 
 /**
  * join(+Grid, +NumOfColumns, +Path, -RGrids) 
@@ -136,24 +136,28 @@ camino_posiciones([[F | C] | Coordenadas], CantColumnas, [Pos | PosRestantes]):-
 	camino_posiciones(Coordenadas, CantColumnas, PosRestantes).
 	
 /**
- * !!!!!!!!!!!!!! FALTA UNIFICAR CON EL CODIGO
- * Dada una lista con coordenadas, sabiendo que ahí hay un cero (ya estan burbujeados), cambiar todos los ceros por una potencia de dos random
+ * cambiar_todas(+Elem, +LimInferior, +LimSuperior, +ListaCambiar, -ListaCambiada)
+ * 
+* Cambia todas las apariciones de Elem en ListaCambiar por una potencia de dos generada aleatoriamente a partir de un rango determinado por [LimInferior, LimSuperior) y la unifica en ListaCambiada
  */
-cambiar_todas(X, Y, [X | Xs], [Y | Z]) :-
-	cambiar_todas(X, Y, Xs, Z).
-cambiar_todas(X, Y, [Z | Zs], [Z | R]) :-
-	Z \= X,
-	cambiar_todas(X, Y, Zs, R).
+cambiar_todas(_, _, _, [], []).
+cambiar_todas(X, LimInferior, LimSuperior, [X | Xs], [Y | Z]) :-
+    gen_random_pot(LimInferior, LimSuperior, Y),
+    cambiar_todas(X, LimInferior, LimSuperior, Xs, Z).
+cambiar_todas(X, LimInferior, LimSuperior, [Z | Zs], [Z | R]) :-
+    Z \= X,
+    cambiar_todas(X, LimInferior, LimSuperior, Zs, R).
 
 /**
  * cambiar_en_pos(+Lista, +Indice, +Valor, -ListaActualizada)
  * 
  * Cambia el valor de una posición Pos de la lista Lista por Valor. La modificación se refleja en ListaACtualizada.
  */
-cambiar_en_pos([_|L], 0, X, [X | L]).
-cambiar_en_pos([R | L], Indice, X, [R | Rs]):-
-	I is Indice - 1;
-	cambiar_en_pos(L, I, X, Rs).
+cambiar_en_pos([_|Resto], 0, NuevoValor, [NuevoValor|Resto]).
+cambiar_en_pos([Cabeza|Resto], Index, NuevoValor, [Cabeza|NuevoResto]) :-
+    Index > 0,
+    NuevoIndex is Index - 1,
+    cambiar_en_pos(Resto, NuevoIndex, NuevoValor, NuevoResto).
 
 /**
  * agrupar(+Lista, -ListaAgrupada)
@@ -168,6 +172,86 @@ agrupar([X1 | [X2 | X3]], [Y | Ys]):-
     Y = [X1, X2],
     agrupar(X3, Ys).
 
+/*
+ * get_coordenadas(?Coordenada, ?I, ?J)
+ * 
+ * Se computan los índices correspondientes a una dupla que representa una coordenada
+ */
+get_coordenadas(Coordenada, I, J):-
+	Coordenada = [I, J].
+
+/*
+ * tamanio(+Lista, -Tamaño)
+ * 
+ * Computa el largo de una lista Lista y lo unifica en Tamaño
+ */
+tamanio([],0).
+tamanio([_|Y], N):-
+    tamanio(Y, N1),
+    N is N1 + 1.
+
+/*
+ * concatenar(+Lista1, +Lista2, -ListaConcatenada)
+ * 
+ * Dadas dos listas Lista1 y Lista2 computa su concatenación y la unifica, como una nueva lista fruto de ambas, en ListaConcatenada
+ */
+concatenar([], X, X).
+concatenar([X | Xs], Y, [X | Zs]) :-
+    concatenar(Xs, Y, Zs).
+
+/*
+ * crear_coordenadas(+Filas, +Columnas, -Coordenadas)
+ * 
+ * Dada una cantidad de filas Filas y una cantidad de columnas Columnas, se crea una lista de coordenadas Coordenadas, con todas las coordenadas existentes de una grilla de cantidad de elemento igual que filas x columnas
+ */
+crear_coordenadas(Filas, Columnas, Coordenadas) :-
+	NroFila is Filas - 1,
+	coordenadas_filas(NroFila, Columnas, CoordAux),
+    invertir(CoordAux, Coordenadas).
+	
+/*
+ * coordenadas_filas(+NroFila, +CantColumnas, -Coordenadas)
+ * 
+ * Predicado auxiliar de crear_coordenadas
+ * Sabiendo la cantidad de filas que posee una grilla y su cantidad de columnas, se crean, fila a fila, las coordenadas correspondientes a cada una.
+ */
+coordenadas_filas(0, CantColumnas, Coordenadas):-
+	coordenadas_fila_puntual(0, CantColumnas, Coordenadas).
+coordenadas_filas(NroFila, CantColumnas, CoordenadasReturn):-
+	coordenadas_fila_puntual(NroFila, CantColumnas, CoordenadasAux),
+	FilaSiguiente is NroFila - 1, 
+	coordenadas_filas(FilaSiguiente, CantColumnas, Coordenadas),
+	concatenar(CoordenadasAux, Coordenadas, CoordenadasReturn).        % Se realiza para evitar tener listas, de listas de coordenadas.
+	
+/*
+ * coordenadas_fila_puntual(+NroFila, +NroCol, -Coordenadas)
+ * 
+ * Predicado auxiliar de crear_coordenadas
+ * Dada una fila NroFila y sabiendo la cantidad de elementos que contiene (CantColumnas), se computan todas las coordenadas asociadas a esa fila y se unifican en Coordenadas
+ */
+coordenadas_fila_puntual(NroFila, 1, [[NroFila, 0]]).
+coordenadas_fila_puntual(NroFila, NroCol, [[NroFila, C] | Coordenadas]):-
+	C is NroCol - 1,
+	coordenadas_fila_puntual(NroFila, C, Coordenadas).
+
+/*
+ * invertir(+Lista, -ListaInvertida)
+ * 
+ * Dada una lista Lista invierte su contendio y lo unifica en ListaInvertida
+ */
+invertir([], []).
+invertir([Y | Ys], Z) :-
+    invertir(Ys, Zaux),
+    insertar_f(Y, Zaux, Z).
+
+/*
+ * insertar_f(+Elemento, +Lista, +ListaNueva)
+ * 
+ * Dado un elemento Elemento y una lista Lista, se agrega el elemento Elemento al final de la misma y unifica la nueva lista en ListaNueva
+ */
+insertar_f(X, [], [X]).
+insertar_f(X, [Y | Ys], [Y | Zs]) :-
+    insertar_f(X, Ys, Zs).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Operaciones de manipulación de grilla %
@@ -184,17 +268,16 @@ get_elemento(Grilla, Fila, Columna, Elem):-
 	nth0(Col, FilaAux, Elem).     %               Elem es el elemento ubicado en la posicion columna.
 
 /**
- * set_suma_grilla(+GrillaVieja, +CantColumnas, +Camino, +Suma, ,-GrillaNueva)
+ * set_suma_grilla(+GrillaVieja, +Camino, +Suma, ,-GrillaNueva)
  * 
  * Setea en la última posición del camino la suma computada del camino de elementos de la grilla que se unieron.
  * Camino es una lista que contiene coordenadas.
  */
-set_suma_grilla(GrillaVieja, CantColumnas, Camino, Suma, GrillaNueva):-
+set_suma_grilla(GrillaVieja, Camino, Suma, GrillaNueva):-
 	ultimo(Camino, [NroFila | NroCol]),					     % Busco la coordenada correspondiente
-	ubicacion_en_grilla(NroFila, NroCol, CantColumnas, Pos), % Computo la posicion relativa
 	nth0(NroFila, GrillaVieja, FilaEntera),                  % Guardo la fila completa correspondiente a NroFila
-	cambiar_en_pos(FilaEntera, Pos, Suma, FilaAux),          % En la posición Pos de la fila que me guardé, pongo el resultado Suma
-	cambiar_en_pos(GrillaVieja, Pos, FilaAux, GrillaNueva).  % Cambio la fila de la fila NroFila con la fila que contiene la modificación anterior
+	cambiar_en_pos(FilaEntera, NroCol, Suma, FilaAux),
+	cambiar_en_pos(GrillaVieja, NroFila, FilaAux, GrillaNueva).
 
 /**
  * ubicacion_en_grilla(+Fila, +Columna, +CantColumnas, -Pos)
@@ -220,17 +303,15 @@ max_grilla(Grilla, Max):-
 	max_numero(Lista, Max).
 
 /**
- * completar_grilla(+Grilla, +LimInferior, +LimSuperior, -GrillaCompleta)
+ * reemplazar_ceros(+Grilla, +LimInferior, +LimSuperior, -GrillaCompleta)
  * 
  * Dada una grilla conteniendo 0 (representa posiciones a completar), reemplaza esos elementos por valores válidos que son potencias de 2.
  * Estos nuevos valores son potencias de dos aleatorias generadas a partir de un intervalo numérico [LimInferior, LimSuperior).
  */
-completar_grilla([], _, _, []).
-completar_grilla([0 | Grilla], LimInferior, LimSuperior, [PotRandom | GrillaCompleta]):-
-	gen_random_pot(LimInferior, LimSuperior, PotRandom),
-	completar_grilla(Grilla, LimInferior, LimSuperior, GrillaCompleta).
-completar_grilla([N | Grilla], LimInferior, LimSuperior, [N | GrillaCompleta]):-
-	completar_grilla(Grilla, LimInferior, LimSuperior, GrillaCompleta).
+reemplazar_ceros([], _, _, []).
+reemplazar_ceros([FilaCeros | RestoFilasCeros], LimInferior, LimSuperior, [Fila | RestoFilas]):-
+    cambiar_todas(0, LimInferior, LimSuperior, FilaCeros, Fila),
+    reemplazar_ceros(RestoFilasCeros, LimInferior, LimSuperior, RestoFilas).
 
 /**
  * pos_ceros(+Lista, +Indice, -PosCeros).
@@ -251,7 +332,7 @@ pos_ceros([_ | Lista], Indice, PosCeros):-
 /**
  * pos_ceros_grilla(+Grilla, +GrillaCoordenadas, -Coordenadas)
  * 
- * Dada una grilla Grilla con valores numéricos, una GrillaCoordenadas conteniendo coordenadas de la matriz, crea una lista Coordenas que contiene las duplas donde hay elementos que son igual que cero.
+ * Dada una grilla Grilla con valores numéricos, una GrillaCoordenadas conteniendo coordenadas de la matriz, crea una lista Coordenadas que contiene las duplas donde hay elementos que son igual que cero.
  */
 pos_ceros_grilla(Grilla, GrillaCoordenadas, Coordenadas):-
 	aplanar(Grilla, ListaAplanada),
@@ -269,3 +350,16 @@ unificacion_posIndex_posCoordenadas([[F, C] | _], 0, [F, C]).
 unificacion_posIndex_posCoordenadas([_ | FCs], Indice, Rta):-
     I is Indice - 1,
     unificacion_posIndex_posCoordenadas(FCs, I, Rta).	
+
+/*
+ * set_ceros_grilla(+Grilla, +ListaCoordenadas, -GrillaCeros)
+ * 
+ * Dada una grilla Grilla y una lista conteniendo coordenadas ListaCoordenadas, establece en los índices de Grilla que pertenezcan a ListaCoordenadas, un cero como elemento.
+ */
+set_ceros_grilla(Grilla, [], Grilla).
+set_ceros_grilla(GrillaVieja, [Primera | Resto], GrillaNueva):-
+    get_coordenadas(Primera, NroFila, NroCol),
+    nth0(NroFila, GrillaVieja, Fila),
+    cambiar_en_pos(Fila, NroCol, 0, FilaNueva),
+    cambiar_en_pos(GrillaVieja, NroFila, FilaNueva, GrillaAux),
+    set_ceros_grilla(GrillaAux, Resto, GrillaNueva).
