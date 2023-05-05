@@ -13,22 +13,21 @@
  * en la grilla Grid, con número de columnas NumOfColumns. El número 0 representa que la celda está vacía. 
  */ 
 
-join(Grid, _NumOfColumns, _Path, RGrids):-
-	/*
+join(Grid, NumOfColumns, Path, RGrids):-
 	suma_camino_pot_dos(Grid, Path, Suma),
 	set_suma_grilla(Grid, Path, Suma, GrillaSuma),
+	set_ceros_grilla(GrillaSuma, Path, GrillaCeros),
 	%burbujear_ceros
 	generar_rango(GrillaSuma, LimInferior, LimSuperior),
-	set_ceros_grilla(GrillaSuma, Path, GrillaCeros),
 	reemplazar_ceros(GrillaCeros, LimInferior, LimSuperior, GrillaCompleta),
-	RGrids = [Grid, GrillaCompleta].
-	%RGrids = [Grid, GrillaSuma, GrillaCeros, GrillaCompleta].
-	*/
+	RGrids = [GrillaCeros, GrillaCompleta].
+	%RGrids = [GrillaSuma, GrillaCeros, GrillaCompleta]. %Grid no va
 	
+	/*
 	Grid = [N | Ns],	% La implementación actual es simplemente a modo de muestra, y no tiene sentido, debe reepmplazarla
 	N2 is N * 2,		% por una implementación válida.
 	RGrids = [[0 | Ns], [N2 | Ns]].
-    
+    */
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
