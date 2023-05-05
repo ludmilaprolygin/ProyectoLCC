@@ -14,7 +14,7 @@
  */ 
 
 join(Grid, NumOfColumns, Path, RGrids):-
-	agrupar(Grid, GrillaAgrupada),
+	agrupar(Grid, NumOfColumns, GrillaAgrupada),
 	suma_camino_pot_dos(GrillaAgrupada, Path, Suma),
 	set_suma_grilla(GrillaAgrupada, Path, Suma, GrillaSuma),
 	borrar_ultimo(Path, PathSinUltimo), %Se busca el Path sin el ultimo elemento porque sino setea un cero en ese lugar
