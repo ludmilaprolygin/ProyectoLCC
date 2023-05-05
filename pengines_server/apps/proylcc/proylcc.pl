@@ -14,14 +14,18 @@
  */ 
 
 join(Grid, NumOfColumns, Path, RGrids):-
-	suma_camino_pot_dos(Grid, Path, Suma),
-	set_suma_grilla(Grid, Path, Suma, GrillaSuma),
-	set_ceros_grilla(GrillaSuma, Path, GrillaCeros),
+	agrupar(Grid, GrillaAgrupada),
+	suma_camino_pot_dos(GrillaAgrupada, Path, Suma),
+	set_suma_grilla(GrillaAgrupada, Path, Suma, GrillaSuma),
+	borrar_ultimo(Path, PathSinUltimo), %Se busca el Path sin el ultimo elemento porque sino setea un cero en ese lugar
+	set_ceros_grilla(GrillaSuma, PathSinUltimo, GrillaCeros),
 	%burbujear_ceros
-	generar_rango(GrillaSuma, LimInferior, LimSuperior),
+	generar_rango(GrillaSuma, LimInferior, LimSuperior), %Pensar la posibilidad de meterlo adentro de reemplazar_ceros directamente
 	reemplazar_ceros(GrillaCeros, LimInferior, LimSuperior, GrillaCompleta),
-	RGrids = [GrillaCeros, GrillaCompleta].
-	%RGrids = [GrillaSuma, GrillaCeros, GrillaCompleta]. %Grid no va
+	aplanar(GrillaSuma, GrillaSumaAplanada),
+	aplanar(GrillaCeros, GrillaCerosAplanada),
+	aplanar(GrillaCompleta, GrillaCompletaAplanada),
+	RGrids = [GrillaSumaAplanada, GrillaCerosAplanada, GrillaCompletaAplanada]. %Grid no va
 	
 	/*
 	Grid = [N | Ns],	% La implementación actual es simplemente a modo de muestra, y no tiene sentido, debe reepmplazarla
@@ -135,6 +139,17 @@ aplanar([], []).
 aplanar([Lista|Resto], Aplanada) :-
     aplanar(Resto, NuevaAplanada),
     append(Lista, NuevaAplanada, Aplanada).
+
+/*
+ * agrupar(+Lista, +CantColumnas, -Grilla)
+ * 
+ * Dada una lista Lista y una antidad de columnas CantColumnas unifica en Grilla una lista de listas de cantidad CantColumnas de los elementos de Lista
+ */
+agrupar([], _, []).
+agrupar(Lista, N, [Sublista|Sublistas]) :-
+    length(Sublista, N),
+    append(Sublista, Resto, Lista),
+    agrupar(Resto, N, Sublistas).
 
 /**
  * camino_posiciones(+ListaCoordenadas, +CantColumnas, -ListaPosiciones)
@@ -264,6 +279,16 @@ invertir([Y | Ys], Z) :-
 insertar_f(X, [], [X]).
 insertar_f(X, [Y | Ys], [Y | Zs]) :-
     insertar_f(X, Ys, Zs).
+
+/*
+ * borrar_ultimo(+Lista, -ListaSinUltimo)
+ * 
+ * Dada una lista Lista unifica en ListaSinUltimo a Lista sin su ultimo elemento
+ */
+borrar_ultimo([_], []).
+borrar_ultimo([X | Xs], [X | Z]) :-
+    borrar_ultimo(Xs, Z).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Operaciones de manipulación de grilla %
