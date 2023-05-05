@@ -5,6 +5,7 @@
 	]).
 
 %:- use_module(library(random)).
+:- use_module(library(clpfd)).
 
 /**
  * join(+Grid, +NumOfColumns, +Path, -RGrids) 
@@ -14,10 +15,18 @@
  */ 
 
 join(Grid, NumOfColumns, Path, RGrids):-
+	/*
+	 * Dado que los predicados: 
+	 *    suma_camino_pot_dos/3,
+	 *    set_suma_grilla/4,
+	 *    set_ceros_grilla/3,
+	 *    reemplazar_ceros/4
+	 * manipulan las grillas como una lista de filas, se unifica en GrillaAgrupada una representación de Grid con esta estructura                     
+	 */
 	agrupar(Grid, NumOfColumns, GrillaAgrupada), %Cambiar nombre a agrupar/2
 	suma_camino_pot_dos(GrillaAgrupada, Path, Suma),
 	set_suma_grilla(GrillaAgrupada, Path, Suma, GrillaSuma),
-	borrar_ultimo(Path, PathSinUltimo), %Se busca el Path sin el ultimo elemento porque sino setea un cero en ese lugar
+	borrar_ultimo(Path, PathSinUltimo), %Se busca el Path sin el ultimo elemento porque sino setea un cero en el lugar que debe contener a la suma de elementos del camino
 	set_ceros_grilla(GrillaSuma, PathSinUltimo, GrillaCeros),
 	%burbujear_ceros
 	generar_rango(GrillaSuma, LimInferior, LimSuperior), %Pensar la posibilidad de meterlo adentro de reemplazar_ceros directamente
@@ -26,13 +35,6 @@ join(Grid, NumOfColumns, Path, RGrids):-
 	aplanar(GrillaCeros, GrillaCerosAplanada),
 	aplanar(GrillaCompleta, GrillaCompletaAplanada),
 	RGrids = [GrillaSumaAplanada, GrillaCerosAplanada, GrillaCompletaAplanada]. %Grid no va
-	
-	/*
-	Grid = [N | Ns],	% La implementación actual es simplemente a modo de muestra, y no tiene sentido, debe reepmplazarla
-	N2 is N * 2,		% por una implementación válida.
-	RGrids = [[0 | Ns], [N2 | Ns]].
-    */
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Operaciones de generación numérica %
@@ -146,10 +148,10 @@ aplanar([Lista|Resto], Aplanada) :-
  * Dada una lista Lista y una antidad de columnas CantColumnas unifica en Grilla una lista de listas de cantidad CantColumnas de los elementos de Lista
  */
 agrupar([], _, []).
-agrupar(Lista, N, [Sublista|Sublistas]) :-
-    length(Sublista, N),
-    append(Sublista, Resto, Lista),
-    agrupar(Resto, N, Sublistas).
+agrupar(Lista, CantColumnas, [Fila|RestoFilas]) :-
+    tamanio(Fila, CantColumnas),
+    append(Fila, Resto, Lista),
+    agrupar(Resto, CantColumnas, RestoFilas).
 
 /**
  * camino_posiciones(+ListaCoordenadas, +CantColumnas, -ListaPosiciones)
@@ -165,7 +167,7 @@ camino_posiciones([[F | C] | Coordenadas], CantColumnas, [Pos | PosRestantes]):-
 /**
  * cambiar_todas(+Elem, +LimInferior, +LimSuperior, +ListaCambiar, -ListaCambiada)
  * 
-* Cambia todas las apariciones de Elem en ListaCambiar por una potencia de dos generada aleatoriamente a partir de un rango determinado por [LimInferior, LimSuperior) y la unifica en ListaCambiada
+ * Cambia todas las apariciones de Elem en ListaCambiar por una potencia de dos generada aleatoriamente a partir de un rango determinado por [LimInferior, LimSuperior) y la unifica en ListaCambiada
  */
 cambiar_todas(_, _, _, [], []).
 cambiar_todas(X, LimInferior, LimSuperior, [X | Xs], [Y | Z]) :-
