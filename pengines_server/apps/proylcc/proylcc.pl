@@ -19,6 +19,7 @@ join(Grid, NumOfColumns, Path, RGrids):-
 	 *    suma_camino_pot_dos/3,
 	 *    set_suma_grilla/4,
 	 *    set_ceros_grilla/3,
+	 *    burbujear_ceros/2,
 	 *    reemplazar_ceros/4
 	 * manipulan las grillas como una lista de filas, se unifica en GrillaAgrupada una representación de Grid con esta estructura                     
 	 */
