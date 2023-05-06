@@ -489,3 +489,7 @@ subir_ceros([], []).
 subir_ceros([Fila | Resto], [FilaBurbujeada | RestoBurbujeado]):-
 	mover_ceros_izquierda(Fila, FilaBurbujeada),
 	subir_ceros(Resto, RestoBurbujeado).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+booster(Grid, NumOfColumns, RGrids).
