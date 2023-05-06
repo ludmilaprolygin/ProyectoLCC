@@ -2,6 +2,7 @@
 	[  
 		join/4,               % Evolución de la combinación de celdas del camino
 		suma_camino_pot_dos/3 % Computa el resultado de la suma de un camino
+		%booster
 	]).
 
 :- use_module(library(clpfd)).
