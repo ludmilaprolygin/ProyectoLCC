@@ -400,6 +400,7 @@ reemplazar_ceros([FilaCeros | RestoFilasCeros], LimInferior, LimSuperior, [Fila 
  * Indice determina el inicio del mapeo de posiciones.
  * Lista es una lista conteniendo los elementos de la grilla en forma aplanada.
  */
+/*
 pos_ceros([], _, []).
 pos_ceros([0 | Lista], Indice, [Indice | PosCeros]):-
 	IndiceAux is Indice + 1,
@@ -407,6 +408,27 @@ pos_ceros([0 | Lista], Indice, [Indice | PosCeros]):-
 pos_ceros([_ | Lista], Indice, PosCeros):-
 	IndiceAux is Indice + 1,
 	pos_ceros(Lista, IndiceAux, PosCeros).
+*/
+
+pos_ceros(Lista, Indice, Posiciones):-
+	pos_elem(Lista, 0, Indice, Posiciones).
+
+/*
+ * pos_elem(+Lista, +Elem, +Indice, -Posiciones)
+ * 
+ * Computa en una lista las posiciones donde hay elementos Elem. 
+ * El mapeo de los indices donde los hay corresponden a un orden de posiciones de coordenadas de matriz (ver camino_posiciones más arriba).
+ * Indice determina el inicio del mapeo de posiciones.
+ * Lista es una lista conteniendo los elementos de la grilla en forma aplanada.
+ */
+pos_elem([], _, _, []).
+pos_elem([Elem | Lista], Elem, Indice, [Indice | PosCeros]):-
+	IndiceAux is Indice + 1,
+	pos_elem(Lista, Elem, IndiceAux, PosCeros).
+pos_elem([X | Lista], Elem, Indice, PosCeros):-
+    X \= Elem,
+	IndiceAux is Indice + 1,
+	pos_elem(Lista, Elem, IndiceAux, PosCeros).
 
 /**
  * pos_ceros_grilla(+Grilla, +GrillaCoordenadas, -Coordenadas)
