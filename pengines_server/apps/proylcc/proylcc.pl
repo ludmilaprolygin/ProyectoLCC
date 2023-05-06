@@ -4,7 +4,6 @@
 		suma_camino_pot_dos/3 % Computa el resultado de la suma de un camino
 	]).
 
-%:- use_module(library(random)).
 :- use_module(library(clpfd)).
 
 /**
@@ -28,13 +27,14 @@ join(Grid, NumOfColumns, Path, RGrids):-
 	set_suma_grilla(GrillaAgrupada, Path, Suma, GrillaSuma),
 	borrar_ultimo(Path, PathSinUltimo), %Se busca el Path sin el ultimo elemento porque sino setea un cero en el lugar que debe contener a la suma de elementos del camino
 	set_ceros_grilla(GrillaSuma, PathSinUltimo, GrillaCeros),
-	%burbujear_ceros
+	burbujear_ceros(GrillaCeros, GrillaBurbujeada),
 	generar_rango(GrillaSuma, LimInferior, LimSuperior), %Pensar la posibilidad de meterlo adentro de reemplazar_ceros directamente
-	reemplazar_ceros(GrillaCeros, LimInferior, LimSuperior, GrillaCompleta),
+	reemplazar_ceros(GrillaBurbujeada, LimInferior, LimSuperior, GrillaCompleta),
 	aplanar(GrillaSuma, GrillaSumaAplanada),
 	aplanar(GrillaCeros, GrillaCerosAplanada),
+	aplanar(GrillaBurbujeada, GrillaBurbujeadaAplanada),
 	aplanar(GrillaCompleta, GrillaCompletaAplanada),
-	RGrids = [GrillaSumaAplanada, GrillaCerosAplanada, GrillaCompletaAplanada]. %Grid no va
+	RGrids = [GrillaSumaAplanada, GrillaCerosAplanada, GrillaBurbujeadaAplanada, GrillaCompletaAplanada]. %Grid no va
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Operaciones de generación numérica %
@@ -291,6 +291,45 @@ borrar_ultimo([_], []).
 borrar_ultimo([X | Xs], [X | Z]) :-
     borrar_ultimo(Xs, Z).
 
+/*
+ * mover_ceros_izquierda(+Lista, -ListaBurbujeada)
+ * 
+ * Desplaza todos los elementos iguales que cero al inicio de la lista.
+ */
+mover_ceros_izquierda(Lista, ListaBurbujeada):-
+	mover_ceros_derecha(Lista, [], ListaAux), % Inicialmente el desplazamiento se da a la derecha por simplicidad
+	pos_ceros(ListaAux, 0, PosCeros), % Se busca una lista que contenga todas los posiciones donde hay ceros en la lista Lista
+	tamanio(PosCeros, CantCeros),     % para poder consultar la cantidad total de ceros.
+	tamanio(ListaAux, CantTotal), 
+	CantValores is CantTotal-CantCeros,
+	dividir_lista(ListaAux, CantValores, Valores, Ceros), % Se parte la lista Lista en dos listas; la primera es de longitud CantValores (y consecuentemente contiene solo valores diferentes de cero), y la segunda el resto de los elementos
+	append(Ceros, Valores, ListaBurbujeada). % Se pegan las listas Ceros y Valores para que queden los ceros al principio de la lista, tal cual se busca
+	
+/*
+ * mover_ceros_derecha(+Lista, +Auxiliar, -ListaCerosDerecha)
+ * 
+ * Dada una lista Lista a la cual se desea agrupar los ceros en el extremo derecho y una lista Auxiliar que sirve de acumulador de elementos, se busca formar una lista consecuente ListaCerosDerecha con los ceros a su derecha, como su nombre lo indica
+ */
+mover_ceros_derecha([], Aux, Aux).
+mover_ceros_derecha([0 | Resto], Aux, ListaCerosDerecha):- 
+	mover_ceros_derecha(Resto, [0 | Aux], ListaCerosDerecha).
+mover_ceros_derecha([X | Resto], Aux, [X | ListaCerosDerecha]):-
+	X\=0,
+	mover_ceros_derecha(Resto, Aux, ListaCerosDerecha).
+
+/*
+ * dividir_lista(+ListaDividir, +TamanioPrimera, -PrimeraSubLista, -SegundaSubLista)
+ * 
+ * Dada una lista ListaDividir se unifica en PrimeraSubLista una lista conteniendo los primeros TamanioPrimera elementos de ListaDividir y, el resto de los elementos, en SegundaSubLista
+ */
+dividir_lista([], _, [], []).
+dividir_lista(Lista, Tamanio, [], Lista) :-
+    Tamanio =< 0.
+dividir_lista([X|Resto], Tamanio, [X|RestoPrimera], SegundaLista) :-
+    Tamanio > 0,
+    TamanioAux is Tamanio - 1,
+    dividir_lista(Resto, TamanioAux, RestoPrimera, SegundaLista).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Operaciones de manipulación de grilla %
@@ -427,4 +466,25 @@ intercambiar_arriba(Grilla, 0, _, Grilla).
 intercambiar_arriba(Grilla, Fila, Col, GrillaNueva):-
     Fila > 0,
     FilaArriba is Fila - 1,
-    intercambiar(Grilla, Fila, Col, FilaArriba, Col, GrillaNueva).
+	intercambiar(Grilla, Fila, Col, FilaArriba, Col, GrillaNueva).
+
+/*
+ * burbujear_ceros(+Grilla, -GrillaBurbujeada)
+ * 
+ * Dada una grilla conteniendo elementos numéricos, se unifica en GrillaBurbujeada su correspondiente con los valores iguales que cero en la superficie de cada columna
+ * La estrategia consiste en buscar su grilla traspuesta y desplazar los ceros en las columnas
+ */
+burbujear_ceros(Grilla, GrillaBurbujeada):-
+	transpose(Grilla, GrillaTraspuesta),
+	subir_ceros(GrillaTraspuesta, GrillaBurbujeadaAux),
+	transpose(GrillaBurbujeadaAux, GrillaBurbujeada).
+	
+/*
+ * subir_ceros(+Grilla, -Grilla)
+ * 
+ * Predicado auxiliar a burbujear_ceros. 
+ */
+subir_ceros([], []).
+subir_ceros([Fila | Resto], [FilaBurbujeada | RestoBurbujeado]):-
+	mover_ceros_izquierda(Fila, FilaBurbujeada),
+	subir_ceros(Resto, RestoBurbujeado).
