@@ -341,6 +341,7 @@ dividir_lista([X|Resto], Tamanio, [X|RestoPrimera], SegundaLista) :-
  * get_elemento(+Grilla, +Fila, +Columna, -Elem)
  * 
  * Encuentra el elemento Elem ubicando en (Fila, Columna) de la Grilla.
+ * Columna es una lista conteniendo un único elemento que representa la columna.
  */
 get_elemento(Grilla, Fila, Columna, Elem):-
 	nth0(Fila, Grilla, FilaAux),  %nth0/3 existe; FilaAux es la fila ubicada en la posicion Fila.
@@ -401,16 +402,6 @@ reemplazar_ceros([FilaCeros | RestoFilasCeros], LimInferior, LimSuperior, [Fila 
  * Indice determina el inicio del mapeo de posiciones.
  * Lista es una lista conteniendo los elementos de la grilla en forma aplanada.
  */
-/*
-pos_ceros([], _, []).
-pos_ceros([0 | Lista], Indice, [Indice | PosCeros]):-
-	IndiceAux is Indice + 1,
-	pos_ceros(Lista, IndiceAux, PosCeros).
-pos_ceros([_ | Lista], Indice, PosCeros):-
-	IndiceAux is Indice + 1,
-	pos_ceros(Lista, IndiceAux, PosCeros).
-*/
-
 pos_ceros(Lista, Indice, Posiciones):-
 	pos_elem(Lista, 0, Indice, Posiciones).
 
@@ -516,3 +507,128 @@ subir_ceros([Fila | Resto], [FilaBurbujeada | RestoBurbujeado]):-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 booster(Grid, NumOfColumns, RGrids).
+
+/*
+booster(Grilla, CantColumnas, GrillaEfectoResultante):-
+    tamanio(Grilla, CantElementos),
+    agrupar(Grilla, CantColumnas, GrillaMatriz),
+    buscar_caminos_boostear(Grilla, GrillaMatriz, 0, CantElementos, CantColumnas, Caminos),
+    eliminar_listas_un_elemento(Caminos, CaminosFinales)
+    %%%%% Agregar co
+    */
+
+/*
+ * buscar_caminos_boostear(+Elementos, +Grilla, +Posicion, +CantElementos, +CantColumnas, -Caminos)
+ * 
+ * A partir de los elementos ingresados computa y unifica una lista Caminos que contiene una lista de caminos de vecinos de elementos iguales.
+ */
+buscar_caminos_boostear([], _, _, _ , _, []).
+buscar_caminos_boostear([Elem | RestoElementos], Grilla, Posicion, CantElementos, CantColumnas, [CaminoElem | RestoCaminos]):-
+    pos_elementos_booster(Elem, Grilla, Posicion, CantElementos, CantColumnas, CaminoElem),
+    PosSiguiente is Posicion + 1,
+    buscar_caminos_boostear(RestoElementos, Grilla, PosSiguiente, CantElementos, CantColumnas, RestoCaminos).
+
+/*
+ * pos_elementos_boostear(+Elem, +Grilla, +Posicion, +CantElementos, +CantColumnas, -PosBoostear)
+ *
+ * Dado el elemento Elem con el cual se debe comparar, se computa una lista PosBoostear que contiene las posiciones adyacentes y siguientes de la grilla Grilla a Elem ubicado en la posicion Posicion, tales que sus elementos son iguales que Elem
+ */
+% (1) Caso para evaluar los elementos de la grilla que están en la primer columna pero no están en la última fila
+pos_elementos_booster(Elem, Grilla, Posicion, CantElementos, CantColumnas, PosBoostear):-
+    Resto is Posicion mod CantColumnas,
+    Resto = 0,
+    Posicion < CantElementos - CantColumnas, 
+    Pos1 is Posicion+1, Pos2 is Posicion+CantColumnas, Pos3 is Pos1+Pos2-Posicion,
+	PosicionesEvaluar = [Pos1, Pos2, Pos3],
+    pos_elementos_booster_iteracion(Elem, Grilla, CantColumnas, PosicionesEvaluar, PosBoostearAux),
+    append([Posicion], PosBoostearAux, PosBoostearConVacio),
+    borrar_todas([], PosBoostearConVacio, PosBoostear). 
+% (2) Caso para evaluar los elementos de la grilla que no están en columnas extremas y no están en la última fila
+pos_elementos_booster(Elem, Grilla, Posicion, CantElementos, CantColumnas, PosBoostear):-
+    Resto is Posicion mod CantColumnas,
+    ColumnaTope is CantColumnas - 1,
+    Resto \= 0, Resto \= ColumnaTope,
+    Posicion < CantElementos - CantColumnas, 
+    Pos1 is Posicion+1, Pos2 is Posicion+CantColumnas-1, Pos3 is Posicion+CantColumnas, Pos4 is Posicion+CantColumnas+1,
+	PosicionesEvaluar = [Pos1, Pos2, Pos3, Pos4],
+    pos_elementos_booster_iteracion(Elem, Grilla, CantColumnas, PosicionesEvaluar, PosBoostearAux),
+    append([Posicion], PosBoostearAux, PosBoostearConVacio),
+    borrar_todas([], PosBoostearConVacio, PosBoostear). 
+% (3) Caso para evaluar los elementos de la grilla que están en la última columna pero no están en la última fila
+pos_elementos_booster(Elem, Grilla, Posicion, CantElementos, CantColumnas, PosBoostear):-
+    Resto is Posicion mod CantColumnas,
+    ColumnaTope is CantColumnas - 1,
+    Resto = ColumnaTope,
+    Posicion < CantElementos - CantColumnas, 
+    Pos1 is Posicion+CantColumnas-1, Pos2 is Posicion+CantColumnas,
+	PosicionesEvaluar = [Pos1, Pos2],
+    pos_elementos_booster_iteracion(Elem, Grilla, CantColumnas, PosicionesEvaluar, PosBoostearAux),
+    append([Posicion], PosBoostearAux, PosBoostearConVacio),
+    borrar_todas([], PosBoostearConVacio, PosBoostear).
+% (4) Caso para evluar los elementos de la grilla que están en la última fila pero no en la última columna
+pos_elementos_booster(Elem, Grilla, Posicion, CantElementos, CantColumnas, PosBoostear):-
+    Posicion >= CantElementos - CantColumnas,
+    Posicion < CantElementos, 
+    PosEvaluar is Posicion + 1,
+    pos_elementos_booster_iteracion(Elem, Grilla, CantColumnas, [PosEvaluar], PosBoostearAux),
+    append([Posicion], PosBoostearAux, PosBoostearConVacio),
+    borrar_todas([], PosBoostearConVacio, PosBoostear). 
+% (5) Caso para evaluar el último elemento de la grilla
+pos_elementos_booster(_, _, Posicion, CantElementos, _, [Posicion]):- 
+    Posicion is CantElementos - 1.
+
+/*
+ * pos_elementos_booster_iteracion(+Elem, +Grilla, +CantColumnas, +PosEvaluar, -PosEvaluadas)
+ * 
+ * Se recorre la lista PosEvaluar y se unifica en PosEvaluadas una lista cuyos elementos son aquellas posiciones donde los elementos almacenados son iguales que Elem
+ */
+pos_elementos_booster_iteracion(_, _, _, [], []).
+pos_elementos_booster_iteracion(Elem, Grilla, CantColumnas, [PosEvaluar | RestoPosEvaluar], [Pos | RestoEvaluado]):-
+    obtener_coordenada(PosEvaluar, CantColumnas, F, C),
+    get_elemento(Grilla, F, [C], ElemEvaluar),
+    ElemEvaluar = Elem,
+    Pos = PosEvaluar,
+    pos_elementos_booster_iteracion(Elem, Grilla, CantColumnas, RestoPosEvaluar, RestoEvaluado).
+pos_elementos_booster_iteracion(Elem, Grilla, CantColumnas, [PosEvaluar | RestoPosEvaluar], [Pos | RestoEvaluado]):-
+    obtener_coordenada(PosEvaluar, CantColumnas, F, C),
+    get_elemento(Grilla, F, [C], ElemEvaluar),
+    ElemEvaluar \= Elem,
+    Pos = [],
+    pos_elementos_booster_iteracion(Elem, Grilla, CantColumnas, RestoPosEvaluar, RestoEvaluado).
+
+/*
+ * borrar_todas(+Elem, +Lista, -ListaSinElem)
+ * 
+ * Dados un elemento Elm y una lista Lista se unifica en ListaSinElem a Lista sin ninguna aparicion de Elem
+ */
+borrar_todas(_, [], []).
+borrar_todas(X, [X | Xs], Z) :-
+    borrar_todas(X, Xs, Z).
+borrar_todas(X, [Y | Ys], [Y | Z]) :-
+    Y \= X,
+    borrar_todas(X, Ys, Z).
+
+/*
+ * eliminar_listas_un_elemento(+ListaOriginal, -ListaResultante)
+ * 
+ * Elimina de la ListaOriginal, una lista de sublistas, todas aquellas sublistas que tengan longitud uno y unifica la lista resultante en ListaResultante
+ */
+eliminar_listas_un_elemento([], []).
+eliminar_listas_un_elemento([X|Xs], Ys) :-
+    tamanio(X, T),
+    T = 1,
+    eliminar_listas_un_elemento(Xs, Ys).
+eliminar_listas_un_elemento([X|Xs], [X|Ys]) :-
+    tamanio(X, T),
+    T > 1,
+    eliminar_listas_un_elemento(Xs, Ys).
+
+/*
+ * obtener_coordenada(+Pos, +CantColumnas, -Fila, -Columna)
+ * 
+ * Dada una posición relativa referida al orden del elemento de un conjunto dado, computa los índices Fila y Columna. 
+ * Predicado inverso a ubicacion_en_grilla/4 (más arriba)
+ */
+obtener_coordenada(Pos, CantColumnas, Fila, Columna):-
+     Fila is Pos div CantColumnas,
+     Columna is Pos mod CantColumnas.
