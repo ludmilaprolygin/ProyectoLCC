@@ -142,7 +142,7 @@ function Game() {
         onPathChange={onPathChange}
         onDone={onPathDone}
       />
-      <button className="booster-button" onClick={handleClickBooster}>Colapsar iguales</button>
+      <button className="booster-button" onClick={handleClickBooster}> 💣 Colapsar iguales 💣 </button>
     </div>
   );
 }
