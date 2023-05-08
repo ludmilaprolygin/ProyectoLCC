@@ -1,8 +1,8 @@
 :- module(proylcc, 
 	[  
-		join/4,               % Evolución de la combinación de celdas del camino
-		suma_camino_pot_dos/3 % Computa el resultado de la suma de un camino
-		%booster
+		join/4,                % Evolución de la combinación de celdas del camino
+		suma_camino_pot_dos/3, % Computa el resultado de la suma de un camino
+		booster/3              %
 	]).
 
 :- use_module(library(clpfd)).
@@ -13,7 +13,6 @@
  * RGrids es la lista de grillas representando el efecto, en etapas, de combinar las celdas del camino Path
  * en la grilla Grid, con número de columnas NumOfColumns. El número 0 representa que la celda está vacía. 
  */ 
-
 join(Grid, NumOfColumns, Path, RGrids):-
 	/*
 	 * Dado que los predicados: 
@@ -24,19 +23,19 @@ join(Grid, NumOfColumns, Path, RGrids):-
 	 *    reemplazar_ceros/4
 	 * manipulan las grillas como una lista de filas, se unifica en GrillaAgrupada una representación de Grid con esta estructura                     
 	 */
-	agrupar(Grid, NumOfColumns, GrillaAgrupada), %Cambiar nombre a agrupar/2
+	agrupar(Grid, NumOfColumns, GrillaAgrupada),
 	suma_camino_pot_dos(GrillaAgrupada, Path, Suma),
 	set_suma_grilla(GrillaAgrupada, Path, Suma, GrillaSuma),
 	borrar_ultimo(Path, PathSinUltimo), %Se busca el Path sin el ultimo elemento porque sino setea un cero en el lugar que debe contener a la suma de elementos del camino
 	set_ceros_grilla(GrillaSuma, PathSinUltimo, GrillaCeros),
 	burbujear_ceros(GrillaCeros, GrillaBurbujeada),
-	generar_rango(GrillaSuma, LimInferior, LimSuperior), %Pensar la posibilidad de meterlo adentro de reemplazar_ceros directamente
+	generar_rango(GrillaSuma, LimInferior, LimSuperior), 
 	reemplazar_ceros(GrillaBurbujeada, LimInferior, LimSuperior, GrillaCompleta),
 	aplanar(GrillaSuma, GrillaSumaAplanada),
 	aplanar(GrillaCeros, GrillaCerosAplanada),
 	aplanar(GrillaBurbujeada, GrillaBurbujeadaAplanada),
 	aplanar(GrillaCompleta, GrillaCompletaAplanada),
-	RGrids = [GrillaSumaAplanada, GrillaCerosAplanada, GrillaBurbujeadaAplanada, GrillaCompletaAplanada]. %Grid no va
+	RGrids = [GrillaSumaAplanada, GrillaCerosAplanada, GrillaBurbujeadaAplanada, GrillaCompletaAplanada].
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Operaciones de generación numérica %
@@ -185,6 +184,7 @@ cambiar_todas(X, LimInferior, LimSuperior, [Z | Zs], [Z | R]) :-
  * Cambia el valor de una posición Pos de la lista Lista por Valor. La modificación se refleja en ListaACtualizada.
  */
 cambiar_en_pos([_|Resto], 0, NuevoValor, [NuevoValor|Resto]).
+cambiar_en_pos([_|Resto], [0], NuevoValor, [NuevoValor|Resto]).
 cambiar_en_pos([Cabeza|Resto], Index, NuevoValor, [Cabeza|NuevoResto]) :-
     Index > 0,
     NuevoIndex is Index - 1,
@@ -198,10 +198,8 @@ cambiar_en_pos([Cabeza|Resto], Index, NuevoValor, [Cabeza|NuevoResto]) :-
  * Ejemplo: Lista = [a, b, c, d, e, f]
  *          ListaAgrupada = [[a, b], [c, d], [e, f]]
  */
-agrupar([X1, X2], [[X1, X2]]).
-agrupar([X1 | [X2 | X3]], [Y | Ys]):-
-    Y = [X1, X2],
-    agrupar(X3, Ys).
+agrupar(Lista, ListaAgrupada):-
+    agrupar(Lista, 2, ListaAgrupada).
 
 /*
  * get_coordenadas(?Coordenada, ?I, ?J)
@@ -331,6 +329,36 @@ dividir_lista([X|Resto], Tamanio, [X|RestoPrimera], SegundaLista) :-
     Tamanio > 0,
     TamanioAux is Tamanio - 1,
     dividir_lista(Resto, TamanioAux, RestoPrimera, SegundaLista).
+
+/*
+ * elimina_repetidos(+Lista, -ListaSinRepetidos)
+ * 
+ * Dada una lista Lista, unifica en ListaSinRepetidos los elementos de Lista de forma única.
+ */
+elimina_repetidos([], []).
+elimina_repetidos([X | Xs], Ys) :-
+    buscar(X, Xs),
+    elimina_repetidos(Xs, Ys).
+elimina_repetidos([X | Xs], [X | Ys]) :-
+    elimina_repetidos(Xs, Ys).
+
+/*
+ * buscar(+Elem, +Lista)
+ * 
+ * Determina si Elem pertence a Lista
+ */
+buscar(X, [Y | Ys]) :-
+    X = Y;
+    buscar(X, Ys).
+
+/*
+ * comparten_elementos(+Lista1, +Lista2)
+ * 
+ * Determina si existe algún elemento tal que pertenece tanto a Lista1 como a Lista2.
+ */
+comparten_elementos(Lista1, Lista2):-
+	buscar(Elem, Lista1),
+    buscar(Elem, Lista2).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -506,16 +534,30 @@ subir_ceros([Fila | Resto], [FilaBurbujeada | RestoBurbujeado]):-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-booster(Grid, NumOfColumns, RGrids).
-
 /*
-booster(Grilla, CantColumnas, GrillaEfectoResultante):-
+ * booster(+Grilla, +CantColumnas, -GrillaEfectoResultante)
+ * 
+ * GrillaEfectoResultante es la lista de grillas representando el efecto, en etapas, de combinar las celdas de elementos iguales adyacentes
+ * en la grilla Grid, con número de columnas NumOfColumns. El número 0 representa que la celda está vacía. 
+ */
+booster(Grid, NumOfColumns, RGrids):-
+    Grilla = Grid,
+    CantColumnas = NumOfColumns,
     tamanio(Grilla, CantElementos),
     agrupar(Grilla, CantColumnas, GrillaMatriz),
-    buscar_caminos_boostear(Grilla, GrillaMatriz, 0, CantElementos, CantColumnas, Caminos),
-    eliminar_listas_un_elemento(Caminos, CaminosFinales)
-    %%%%% Agregar co
-    */
+    buscar_caminos_boostear(Grilla, GrillaMatriz, 0, CantElementos, CantColumnas, Caminos), 
+    eliminar_listas_un_elemento(Caminos, CaminosFinales), 
+    buscar_grupos_booster(CaminosFinales, CaminosFinales, GruposRepetidos),
+    concatenar_caminos(GruposRepetidos, GruposCaminos),
+    aplicar_efecto(GrillaMatriz, CantColumnas, GruposCaminos, GrillasEvolucion),
+    ultimo(GrillasEvolucion, GrillaCeros),
+    burbujear_ceros(GrillaCeros, GrillaBurbujeada),
+	generar_rango(GrillaBurbujeada, LimInferior, LimSuperior), 
+	reemplazar_ceros(GrillaBurbujeada, LimInferior, LimSuperior, GrillaCompleta),
+    aplanar(GrillaCeros, GrillaCerosAplanada),
+    aplanar(GrillaBurbujeada, GrillaBurbujeadaAplanada),
+    aplanar(GrillaCompleta, GrillaCompletaAplanada),
+    RGrids = [GrillaCerosAplanada, GrillaBurbujeadaAplanada, GrillaCompletaAplanada].
 
 /*
  * buscar_caminos_boostear(+Elementos, +Grilla, +Posicion, +CantElementos, +CantColumnas, -Caminos)
@@ -632,3 +674,77 @@ eliminar_listas_un_elemento([X|Xs], [X|Ys]) :-
 obtener_coordenada(Pos, CantColumnas, Fila, Columna):-
      Fila is Pos div CantColumnas,
      Columna is Pos mod CantColumnas.
+
+/*
+ * buscar_grupos_booster(+ListaCaminosAdyacentes, +ListaCaminosAdyacentes, -Grupos)
+ * 
+ * Dada una lista de porciones de caminos de elementos vecinos adyacentes iguales, computa viendo, elemento a elemento, en que otros caminos está presente la posicion del camino
+ * Este predicado avanza sobre las listas de posiciones que conforman un posible camino.
+ */
+buscar_grupos_booster([], _, []).
+buscar_grupos_booster([PrimerCamino | RestoCaminosAdy], Caminos, [PrimerGrupo | RestoGrupos]):-
+    buscar_grupos_booster_aux(PrimerCamino, Caminos, PrimerGrupoAux),
+    aplanar(PrimerGrupoAux, PrimerGrupoRepetidos),
+    elimina_repetidos(PrimerGrupoRepetidos, PrimerGrupo),
+    buscar_grupos_booster(RestoCaminosAdy, Caminos, RestoGrupos).
+
+/*
+ * buscar_grupos_booster_aux(+ListaPosicionesAdyacentes, +ListaCaminosAdyacentes, -Grupo)
+ * 
+ * Dada una lista de posiciones que representan lugares a boostear, computa viendo, posicion a posicion, en que otros caminos está presente esa posicion.
+ * Este predicado avanza sobre las posiciones que conforman a un camino en particular.
+ */ 
+buscar_grupos_booster_aux([], _, []).
+buscar_grupos_booster_aux([PrimerElem | RestoElems], Caminitos, [PrimerPorcion | RestoGrupo]):-
+    findall(X, (member(X, Caminitos), member(PrimerElem, X)), PrimerPorcionAux),
+    aplanar(PrimerPorcionAux, PrimerPorcion),   
+    buscar_grupos_booster_aux(RestoElems, Caminitos, RestoGrupo).
+
+/*
+ * concatenar_caminos(+ListaCaminos, -ListaCaminosUnificada)
+ * 
+ * Unifica en ListaCaminosUnificada una lista que contiene caminos que surgen a partir de la simplificación de la union de caminos con posiciones comunes entre ellos.
+ */
+concatenar_caminos([], []).
+concatenar_caminos([Pos1 | Posiciones1], [Pos2 | Posiciones2]):-
+    concatenar_comparten(Posiciones1, Pos1, Pos2, Aux),
+    concatenar_caminos(Aux, Posiciones2).
+
+/*
+ * concatenar_comparten(+ListasConcatenar, +ListaComparacion, -ListaResultante, -ListaAcumulador)
+ * 
+ * Concatena sublistas pertenecientes a ListasConcatenar en una lista que comparten al menos un elemento (se compara con los elementos de ListaComparacion).
+ */
+concatenar_comparten([], Lista, Lista, []).
+concatenar_comparten([Sublista | RestoSublistas], Lista, ListaResultante, ListaAux):-
+    comparten_elementos(Sublista, Lista),
+    append([Sublista, Lista], ListaAppend),
+    elimina_repetidos(ListaAppend, ListaSinRepetidos),
+    concatenar_comparten(RestoSublistas, ListaSinRepetidos, ListaResultante, ListaAux).
+concatenar_comparten([Sublista | RestoSublistas], Lista, ListaResultante, [Sublista | SublistasAux]):-
+    concatenar_comparten(RestoSublistas, Lista, ListaResultante, SublistasAux).
+
+/*
+ * aplicar_efecto(+Grilla, +CantColumnas, +Caminos, -EvolucionGrilla)
+ * 
+ * A partir de la grilla Grilla y los caminos Caminos que deben explotarse, se unifica en EvoucionGrilla las diferentes instancias por las que pasa grilla al usar el booster
+ */
+aplicar_efecto(_, _, [], []).
+aplicar_efecto(Grilla, CantColumnas, [Camino | Caminos], [PrimerGrilla | GrillasSiguientes]):-
+    listaPos_a_listaCoordenadas(Camino, CantColumnas, CaminoCoord),
+    suma_camino_pot_dos(Grilla, CaminoCoord, Suma),
+    set_suma_grilla(Grilla, CaminoCoord, Suma, GrillaSuma),
+    borrar_ultimo(CaminoCoord, CaminoSinUltimo),
+    set_ceros_grilla(GrillaSuma, CaminoSinUltimo, PrimerGrilla),
+    aplicar_efecto(PrimerGrilla, CantColumnas, Caminos, GrillasSiguientes).
+
+/*
+ * listaPos_a_listaCoordenadas(+Posiciones, +CantColumnas, -Coordenadas)
+ * 
+ * Sabiendo que las posiciones tienen un mapeo a pares ordenados (i,j) que codifican una coordenada, se unifica en Coordenadas una lista con dicho mapeo, para cada posicion de Posiciones
+ */
+listaPos_a_listaCoordenadas([], _, []).
+listaPos_a_listaCoordenadas([PrimerPosicion | RestoPosiciones], CantColumnas, [PrimerCoordenada | RestoCoordenadas]):-
+	obtener_coordenada(PrimerPosicion, CantColumnas, F, C),
+    get_coordenadas(PrimerCoordenada, F, C),
+    listaPos_a_listaCoordenadas(RestoPosiciones, CantColumnas, RestoCoordenadas).

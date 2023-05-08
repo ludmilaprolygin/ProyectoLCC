@@ -45,6 +45,18 @@ body {
   cursor: pointer;
 }
 
+.suma-parcial {
+  margin: 5px;
+  border-radius: 5px;
+  font-size: 25px;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 10px 15px;
+  margin: 10px;
+  font-size: 25px;
+  color: white;
+}
+
 .rise {
   margin: 2px;
 }
@@ -95,4 +107,22 @@ body {
 
 .connectorLine.backslash {
   transform: rotate(45deg);
+}
+
+.booster-button {
+  background-color: rgb(36, 156, 209);
+  color: white;
+  border-radius: 5px;
+  font-size: 1rem;
+  font-weight: none;
+  padding: 0.5rem 1rem;
+  border: none;
+  cursor: pointer;
+  font-family: Arial, Helvetica, sans-serif;
+  text-transform: uppercase;
+  transition: all 0.3s ease-in-out;
+}
+
+.booster-button:hover {
+  background-color: rgb(175, 78, 122);
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PengineClient from './PengineClient';
 import Board from './Board';
 import { joinResult } from './util';
+import { numberToColor } from './util';
 
 let pengine;
 
@@ -13,11 +14,25 @@ function Game() {
   const [score, setScore] = useState(0);
   const [path, setPath] = useState([]);
   const [waiting, setWaiting] = useState(false);
+  const [suma, setSuma] = useState(0);
 
   useEffect(() => {
     // This is executed just once, after the first render.
     PengineClient.init(onServerReady);
   }, []);
+
+  function handleClickBooster() {
+      const gridS = JSON.stringify(grid);
+      const queryS = "booster(" + gridS + "," + numOfColumns + ", RGrids)";    
+      pengine.query(queryS, (success, response) => {        
+        if (success) {          
+          animateEffect(response['RGrids'], 500); 
+        } else {
+          setWaiting(false);
+        }        
+      }); 
+      
+    }
 
   /**
    * Called when the server was successfully initialized
@@ -42,7 +57,7 @@ function Game() {
       return;
     }
     setPath(newPath);
-    console.log(JSON.stringify(newPath));
+    console.log(newPath);
   }
 
   /**
@@ -75,11 +90,14 @@ function Game() {
         setScore(score + joinResult(path, grid, numOfColumns));
         setPath([]);
         animateEffect(response['RGrids']);
+        setSuma(0); // Setea en vacio porque ya finalizó la elección del camino con un click
       } else {
         setWaiting(false);
       }
     });
   }
+
+  
 
   /**
    * Displays each grid of the sequence as the current grid in 1sec intervals.
@@ -91,7 +109,7 @@ function Game() {
     if (restRGrids.length > 0) {
       setTimeout(() => {
         animateEffect(restRGrids);
-      }, 1000);
+      }, 500);
     } else {
       setWaiting(false);
     }
@@ -103,7 +121,12 @@ function Game() {
   return (
     <div className="game">
       <div className="header">
+        <div 
+            className="suma-parcial">
+            {suma}
+        </div>
         <div className="score">{score}</div>
+        <button className="booster-button" onClick={handleClickBooster}>Colapsar iguales</button>
       </div>
       <Board
         grid={grid}
