@@ -43,18 +43,8 @@ body {
   color: white;
   font-family: Arial, Helvetica, sans-serif;
   cursor: pointer;
-}
-
-.suma-parcial {
-  margin: 5px;
-  border-radius: 5px;
-  font-size: 25px;
-  color: white;
-  font-family: Arial, Helvetica, sans-serif;
-  padding: 10px 15px;
-  margin: 10px;
-  font-size: 25px;
-  color: white;
+  height: 70px;
+  width: 70px;
 }
 
 .rise {
@@ -110,7 +100,7 @@ body {
 }
 
 .booster-button {
-  background-color: rgb(36, 156, 209);
+  background-color: black;
   color: white;
   border-radius: 5px;
   font-size: 1rem;
@@ -121,8 +111,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   text-transform: uppercase;
   transition: all 0.3s ease-in-out;
+  height: 70px;
+  width: 226px;
 }
 
 .booster-button:hover {
-  background-color: rgb(175, 78, 122);
+  background-color: rgba(36, 157, 209, 0.329);
 }

@@ -37,7 +37,7 @@ export const isAdyacent = (posA, posB) => {
     return !equalPos(posA, posB) && Math.abs(posA[0] - posB[0]) <= 1 && Math.abs(posA[1] - posB[1]) <= 1;
 }
 
-const smallerPow2GreaterOrEqualThan = (num) => {
+export const smallerPow2GreaterOrEqualThan = (num) => {
     const log2num = Math.floor(Math.log2(num));
     return Math.pow(2, log2num) === num ? num : Math.pow(2, log2num + 1);
 }

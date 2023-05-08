@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import PengineClient from './PengineClient';
 import Board from './Board';
+import Square from './Square';
 import { joinResult } from './util';
-import { numberToColor } from './util';
+import { smallerPow2GreaterOrEqualThan } from './util';
 
 let pengine;
 
@@ -57,7 +58,10 @@ function Game() {
       return;
     }
     setPath(newPath);
-    console.log(newPath);
+    if(newPath.length > 1)
+      setSuma(smallerPow2GreaterOrEqualThan(joinResult(newPath, grid, numOfColumns)));
+    else
+      setSuma(0);
   }
 
   /**
@@ -121,12 +125,15 @@ function Game() {
   return (
     <div className="game">
       <div className="header">
-        <div 
-            className="suma-parcial">
-            {suma}
-        </div>
-        <div className="score">{score}</div>
-        <button className="booster-button" onClick={handleClickBooster}>Colapsar iguales</button>
+        {path.length > 1 ? 
+        
+            <Square
+              value={suma}
+            /> :
+            
+            <div className="score">{score}</div>
+        }
+        
       </div>
       <Board
         grid={grid}
@@ -135,6 +142,7 @@ function Game() {
         onPathChange={onPathChange}
         onDone={onPathDone}
       />
+      <button className="booster-button" onClick={handleClickBooster}>Colapsar iguales</button>
     </div>
   );
 }
