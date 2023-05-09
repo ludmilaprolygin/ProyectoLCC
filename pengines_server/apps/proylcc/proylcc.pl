@@ -563,6 +563,7 @@ booster(Grid, NumOfColumns, RGrids):-
  * buscar_caminos_boostear(+Elementos, +Grilla, +Posicion, +CantElementos, +CantColumnas, -Caminos)
  * 
  * A partir de los elementos ingresados computa y unifica una lista Caminos que contiene una lista de caminos de vecinos de elementos iguales.
+ * En caso de que un elemento no tenga una posición adyacente igual a sí, la lista de caminos referida a esta posición, contiene la posición que se está controlando.
  */
 buscar_caminos_boostear([], _, _, _ , _, []).
 buscar_caminos_boostear([Elem | RestoElementos], Grilla, Posicion, CantElementos, CantColumnas, [CaminoElem | RestoCaminos]):-
