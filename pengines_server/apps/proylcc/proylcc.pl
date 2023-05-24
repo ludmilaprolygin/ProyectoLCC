@@ -35,7 +35,7 @@ join(Grid, NumOfColumns, Path, RGrids):-
 	aplanar(GrillaCeros, GrillaCerosAplanada),
 	aplanar(GrillaBurbujeada, GrillaBurbujeadaAplanada),
 	aplanar(GrillaCompleta, GrillaCompletaAplanada),
-	RGrids = [GrillaSumaAplanada, GrillaCerosAplanada, GrillaBurbujeadaAplanada, GrillaCompletaAplanada].
+	RGrids = [GrillaSumaAplanada, GrillaCerosAplanada, GrillaBurbujeadaAplanada, GrillaCompletaAplanada]. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Operaciones de generación numérica %
@@ -297,6 +297,10 @@ borrar_ultimo([X | Xs], [X | Z]) :-
  * Desplaza todos los elementos iguales que cero al inicio de la lista.
  */
 mover_ceros_izquierda(Lista, ListaBurbujeada):-
+    findall(X, (member(X, Lista), X = 0), Ceros),
+    findall(Y, (member(Y, Lista), Y\=0), NoCeros),
+    append(Ceros, NoCeros, ListaBurbujeada).
+    /*
 	mover_ceros_derecha(Lista, [], ListaAux), % Inicialmente el desplazamiento se da a la derecha por simplicidad
 	pos_ceros(ListaAux, 0, PosCeros), % Se busca una lista que contenga todas los posiciones donde hay ceros en la lista Lista
 	tamanio(PosCeros, CantCeros),     % para poder consultar la cantidad total de ceros.
@@ -304,7 +308,8 @@ mover_ceros_izquierda(Lista, ListaBurbujeada):-
 	CantValores is CantTotal-CantCeros,
 	dividir_lista(ListaAux, CantValores, Valores, Ceros), % Se parte la lista Lista en dos listas; la primera es de longitud CantValores (y consecuentemente contiene solo valores diferentes de cero), y la segunda el resto de los elementos
 	append(Ceros, Valores, ListaBurbujeada). % Se pegan las listas Ceros y Valores para que queden los ceros al principio de la lista, tal cual se busca
-	
+	*/
+
 /*
  * mover_ceros_derecha(+Lista, +Auxiliar, -ListaCerosDerecha)
  * 
@@ -449,18 +454,6 @@ pos_elem([X | Lista], Elem, Indice, PosCeros):-
     X \= Elem,
 	IndiceAux is Indice + 1,
 	pos_elem(Lista, Elem, IndiceAux, PosCeros).
-
-/**
- * pos_ceros_grilla(+Grilla, +GrillaCoordenadas, -Coordenadas)
- * 
- * Dada una grilla Grilla con valores numéricos, una GrillaCoordenadas conteniendo coordenadas de la matriz, crea una lista Coordenadas que contiene las duplas donde hay elementos que son igual que cero.
- */
-pos_ceros_grilla(Grilla, GrillaCoordenadas, Coordenadas):-
-	aplanar(Grilla, ListaAplanada),
-	pos_ceros(ListaAplanada, 0, PosCeros),
-	findall(Y, (member(X, PosCeros), unificacion_posIndex_posCoordenadas(GrillaCoordenadas, X, ListaCoordenadas),
-				member(Y, ListaCoordenadas)), CoordenadasCeros),
-	agrupar(CoordenadasCeros, Coordenadas).
 
 /**
  * unificacion_posIndex_posCoordenadas(+ListaCoordenadas, +Indice, -Coordenada)
