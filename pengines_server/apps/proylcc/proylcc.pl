@@ -371,15 +371,13 @@ subir_ceros([Fila | Resto], [FilaBurbujeada | RestoBurbujeado]):-
  * en la grilla Grid, con número de columnas NumOfColumns. El número 0 representa que la celda está vacía. 
  */
 booster(Grid, NumOfColumns, RGrids):-
-    Grilla = Grid,
-    CantColumnas = NumOfColumns,
-    tamanio(Grilla, CantElementos),
-    agrupar(Grilla, CantColumnas, GrillaMatriz),
-    buscar_caminos_boostear(Grilla, GrillaMatriz, 0, CantElementos, CantColumnas, Caminos), 
+    tamanio(Grid, CantElementos),
+    agrupar(Grid, NumOfColumns, GrillaMatriz),
+    buscar_caminos_boostear(Grid, GrillaMatriz, 0, CantElementos, NumOfColumns, Caminos), 
     eliminar_listas_un_elemento(Caminos, CaminosFinales), 
     buscar_grupos_booster(CaminosFinales, CaminosFinales, GruposRepetidos),
     concatenar_caminos(GruposRepetidos, GruposCaminos),
-    aplicar_efecto(GrillaMatriz, CantColumnas, GruposCaminos, GrillasEvolucion),
+    aplicar_efecto(GrillaMatriz, NumOfColumns, GruposCaminos, GrillasEvolucion),
     ultimo(GrillasEvolucion, GrillaCeros),
     burbujear_ceros(GrillaCeros, GrillaBurbujeada),
 	generar_rango(GrillaBurbujeada, LimInferior, LimSuperior), 
