@@ -153,17 +153,6 @@ agrupar(Lista, CantColumnas, [Fila|RestoFilas]) :-
     tamanio(Fila, CantColumnas),
     append(Fila, Resto, Lista),
     agrupar(Resto, CantColumnas, RestoFilas).
-
-/**
- * camino_posiciones(+ListaCoordenadas, +CantColumnas, -ListaPosiciones)
- * 
- * Similar a ubicacion_en_grilla (ver más abajo).
- * Crea una lista de índices que refieren a la ubicación relativa de cada coordenada de la grilla, comenzando en cero.
- */
-camino_posiciones([], _, []).
-camino_posiciones([[F | C] | Coordenadas], CantColumnas, [Pos | PosRestantes]):-
-	ubicacion_en_grilla(F, C, CantColumnas, Pos),
-	camino_posiciones(Coordenadas, CantColumnas, PosRestantes).
 	
 /**
  * cambiar_todas(+Elem, +LimInferior, +LimSuperior, +ListaCambiar, -ListaCambiada)
@@ -229,60 +218,6 @@ concatenar([X | Xs], Y, [X | Zs]) :-
     concatenar(Xs, Y, Zs).
 
 /*
- * crear_coordenadas(+Filas, +Columnas, -Coordenadas)
- * 
- * Dada una cantidad de filas Filas y una cantidad de columnas Columnas, se crea una lista de coordenadas Coordenadas, con todas las coordenadas existentes de una grilla de cantidad de elemento igual que filas x columnas
- */
-crear_coordenadas(Filas, Columnas, Coordenadas) :-
-	NroFila is Filas - 1,
-	coordenadas_filas(NroFila, Columnas, CoordAux),
-    invertir(CoordAux, Coordenadas).
-	
-/*
- * coordenadas_filas(+NroFila, +CantColumnas, -Coordenadas)
- * 
- * Predicado auxiliar de crear_coordenadas
- * Sabiendo la cantidad de filas que posee una grilla y su cantidad de columnas, se crean, fila a fila, las coordenadas correspondientes a cada una.
- */
-coordenadas_filas(0, CantColumnas, Coordenadas):-
-	coordenadas_fila_puntual(0, CantColumnas, Coordenadas).
-coordenadas_filas(NroFila, CantColumnas, CoordenadasReturn):-
-	coordenadas_fila_puntual(NroFila, CantColumnas, CoordenadasAux),
-	FilaSiguiente is NroFila - 1, 
-	coordenadas_filas(FilaSiguiente, CantColumnas, Coordenadas),
-	concatenar(CoordenadasAux, Coordenadas, CoordenadasReturn).        % Se realiza para evitar tener listas, de listas de coordenadas.
-	
-/*
- * coordenadas_fila_puntual(+NroFila, +NroCol, -Coordenadas)
- * 
- * Predicado auxiliar de crear_coordenadas
- * Dada una fila NroFila y sabiendo la cantidad de elementos que contiene (CantColumnas), se computan todas las coordenadas asociadas a esa fila y se unifican en Coordenadas
- */
-coordenadas_fila_puntual(NroFila, 1, [[NroFila, 0]]).
-coordenadas_fila_puntual(NroFila, NroCol, [[NroFila, C] | Coordenadas]):-
-	C is NroCol - 1,
-	coordenadas_fila_puntual(NroFila, C, Coordenadas).
-
-/*
- * invertir(+Lista, -ListaInvertida)
- * 
- * Dada una lista Lista invierte su contendio y lo unifica en ListaInvertida
- */
-invertir([], []).
-invertir([Y | Ys], Z) :-
-    invertir(Ys, Zaux),
-    insertar_f(Y, Zaux, Z).
-
-/*
- * insertar_f(+Elemento, +Lista, +ListaNueva)
- * 
- * Dado un elemento Elemento y una lista Lista, se agrega el elemento Elemento al final de la misma y unifica la nueva lista en ListaNueva
- */
-insertar_f(X, [], [X]).
-insertar_f(X, [Y | Ys], [Y | Zs]) :-
-    insertar_f(X, Ys, Zs).
-
-/*
  * borrar_ultimo(+Lista, -ListaSinUltimo)
  * 
  * Dada una lista Lista unifica en ListaSinUltimo a Lista sin su ultimo elemento
@@ -300,40 +235,6 @@ mover_ceros_izquierda(Lista, ListaBurbujeada):-
     findall(X, (member(X, Lista), X = 0), Ceros),
     findall(Y, (member(Y, Lista), Y\=0), NoCeros),
     append(Ceros, NoCeros, ListaBurbujeada).
-    /*
-	mover_ceros_derecha(Lista, [], ListaAux), % Inicialmente el desplazamiento se da a la derecha por simplicidad
-	pos_ceros(ListaAux, 0, PosCeros), % Se busca una lista que contenga todas los posiciones donde hay ceros en la lista Lista
-	tamanio(PosCeros, CantCeros),     % para poder consultar la cantidad total de ceros.
-	tamanio(ListaAux, CantTotal), 
-	CantValores is CantTotal-CantCeros,
-	dividir_lista(ListaAux, CantValores, Valores, Ceros), % Se parte la lista Lista en dos listas; la primera es de longitud CantValores (y consecuentemente contiene solo valores diferentes de cero), y la segunda el resto de los elementos
-	append(Ceros, Valores, ListaBurbujeada). % Se pegan las listas Ceros y Valores para que queden los ceros al principio de la lista, tal cual se busca
-	*/
-
-/*
- * mover_ceros_derecha(+Lista, +Auxiliar, -ListaCerosDerecha)
- * 
- * Dada una lista Lista a la cual se desea agrupar los ceros en el extremo derecho y una lista Auxiliar que sirve de acumulador de elementos, se busca formar una lista consecuente ListaCerosDerecha con los ceros a su derecha, como su nombre lo indica
- */
-mover_ceros_derecha([], Aux, Aux).
-mover_ceros_derecha([0 | Resto], Aux, ListaCerosDerecha):- 
-	mover_ceros_derecha(Resto, [0 | Aux], ListaCerosDerecha).
-mover_ceros_derecha([X | Resto], Aux, [X | ListaCerosDerecha]):-
-	X\=0,
-	mover_ceros_derecha(Resto, Aux, ListaCerosDerecha).
-
-/*
- * dividir_lista(+ListaDividir, +TamanioPrimera, -PrimeraSubLista, -SegundaSubLista)
- * 
- * Dada una lista ListaDividir se unifica en PrimeraSubLista una lista conteniendo los primeros TamanioPrimera elementos de ListaDividir y, el resto de los elementos, en SegundaSubLista
- */
-dividir_lista([], _, [], []).
-dividir_lista(Lista, Tamanio, [], Lista) :-
-    Tamanio =< 0.
-dividir_lista([X|Resto], Tamanio, [X|RestoPrimera], SegundaLista) :-
-    Tamanio > 0,
-    TamanioAux is Tamanio - 1,
-    dividir_lista(Resto, TamanioAux, RestoPrimera, SegundaLista).
 
 /*
  * elimina_repetidos(+Lista, -ListaSinRepetidos)
@@ -427,44 +328,6 @@ reemplazar_ceros([FilaCeros | RestoFilasCeros], LimInferior, LimSuperior, [Fila 
     cambiar_todas(0, LimInferior, LimSuperior, FilaCeros, Fila),
     reemplazar_ceros(RestoFilasCeros, LimInferior, LimSuperior, RestoFilas).
 
-/**
- * pos_ceros(+Lista, +Indice, -PosCeros).
- * 
- * Computa en una lista las posiciones donde hay ceros. 
- * El mapeo de los indices donde los hay corresponden a un orden de posiciones de coordenadas de matriz (ver camino_posiciones más arriba).
- * Indice determina el inicio del mapeo de posiciones.
- * Lista es una lista conteniendo los elementos de la grilla en forma aplanada.
- */
-pos_ceros(Lista, Indice, Posiciones):-
-	pos_elem(Lista, 0, Indice, Posiciones).
-
-/*
- * pos_elem(+Lista, +Elem, +Indice, -Posiciones)
- * 
- * Computa en una lista las posiciones donde hay elementos Elem. 
- * El mapeo de los indices donde los hay corresponden a un orden de posiciones de coordenadas de matriz (ver camino_posiciones más arriba).
- * Indice determina el inicio del mapeo de posiciones.
- * Lista es una lista conteniendo los elementos de la grilla en forma aplanada.
- */
-pos_elem([], _, _, []).
-pos_elem([Elem | Lista], Elem, Indice, [Indice | PosCeros]):-
-	IndiceAux is Indice + 1,
-	pos_elem(Lista, Elem, IndiceAux, PosCeros).
-pos_elem([X | Lista], Elem, Indice, PosCeros):-
-    X \= Elem,
-	IndiceAux is Indice + 1,
-	pos_elem(Lista, Elem, IndiceAux, PosCeros).
-
-/**
- * unificacion_posIndex_posCoordenadas(+ListaCoordenadas, +Indice, -Coordenada)
- * 
- * Computa la coordenada relativa a un indexado de posición de la grilla en juego (ver ubicacion_en_grilla mas arriba)
- */
-unificacion_posIndex_posCoordenadas([[F, C] | _], 0, [F, C]).
-unificacion_posIndex_posCoordenadas([_ | FCs], Indice, Rta):-
-    I is Indice - 1,
-    unificacion_posIndex_posCoordenadas(FCs, I, Rta).	
-
 /*
  * set_ceros_grilla(+Grilla, +ListaCoordenadas, -GrillaCeros)
  * 
@@ -477,32 +340,6 @@ set_ceros_grilla(GrillaVieja, [Primera | Resto], GrillaNueva):-
     cambiar_en_pos(Fila, NroCol, 0, FilaNueva),
     cambiar_en_pos(GrillaVieja, NroFila, FilaNueva, GrillaAux),
     set_ceros_grilla(GrillaAux, Resto, GrillaNueva).
-
-/*
- * intercambiar(+Grilla, +F1, +C1, +F2, +C2, -GrillaResultante)
- * 
- * Dados los valores de dos coordenadas de una grilla, intercambia sus valores.
- */
-intercambiar(Grilla, Fila1, Col1, Fila2, Col2, GrillaResultante) :-
-	nth0(Fila1, Grilla, Lista1), % Obtener la fila 1
-	nth0(Fila2, Grilla, Lista2), % Obtener la fila 2
-	nth0(Col1, Lista1, Valor1), % Obtener el valor en la columna 1 de la fila 1
-	nth0(Col2, Lista2, Valor2), % Obtener el valor en la columna 2 de la fila 2
-	cambiar_en_pos(Lista1, Col1, Valor2, NuevaLista1), % Reemplazar el valor 1 por el valor 2 en la fila 1
-	cambiar_en_pos(Lista2, Col2, Valor1, NuevaLista2), % Reemplazar el valor 2 por el valor 1 en la fila 2
-	cambiar_en_pos(Grilla, Fila1, NuevaLista1, Temp), % Reemplazar la fila 1 con la nueva fila 1 en la matriz
-	cambiar_en_pos(Temp, Fila2, NuevaLista2, GrillaResultante). % Reemplazar la fila 2 con la nueva fila 2 en la matriz resultante
-	
-/*
- * intercambiar_arriba(+Grilla, +Fila, +Columna, -GrillaResultante)
- * 
- * Dados los valores de una coordenada de una grilla Grilla, intercarmbia su valor con el elemento inmediatamente superior a él
- */
-intercambiar_arriba(Grilla, 0, _, Grilla).
-intercambiar_arriba(Grilla, Fila, Col, GrillaNueva):-
-    Fila > 0,
-    FilaArriba is Fila - 1,
-	intercambiar(Grilla, Fila, Col, FilaArriba, Col, GrillaNueva).
 
 /*
  * burbujear_ceros(+Grilla, -GrillaBurbujeada)
