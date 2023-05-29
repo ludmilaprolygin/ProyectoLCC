@@ -31,11 +31,10 @@ join(Grid, NumOfColumns, Path, RGrids):-
 	burbujear_ceros(GrillaCeros, GrillaBurbujeada),
 	generar_rango(GrillaSuma, LimInferior, LimSuperior), 
 	reemplazar_ceros(GrillaBurbujeada, LimInferior, LimSuperior, GrillaCompleta),
-	aplanar(GrillaSuma, GrillaSumaAplanada),
 	aplanar(GrillaCeros, GrillaCerosAplanada),
 	aplanar(GrillaBurbujeada, GrillaBurbujeadaAplanada),
 	aplanar(GrillaCompleta, GrillaCompletaAplanada),
-	RGrids = [GrillaSumaAplanada, GrillaCerosAplanada, GrillaBurbujeadaAplanada, GrillaCompletaAplanada]. 
+	RGrids = [GrillaCerosAplanada, GrillaBurbujeadaAplanada, GrillaCompletaAplanada]. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Operaciones de generación numérica %
