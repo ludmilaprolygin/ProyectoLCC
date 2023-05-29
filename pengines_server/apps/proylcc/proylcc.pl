@@ -34,7 +34,7 @@ join(Grid, NumOfColumns, Path, RGrids):-
 	aplanar(GrillaCeros, GrillaCerosAplanada),
 	aplanar(GrillaBurbujeada, GrillaBurbujeadaAplanada),
 	aplanar(GrillaCompleta, GrillaCompletaAplanada),
-	RGrids = [GrillaCerosAplanada, GrillaBurbujeadaAplanada, GrillaCompletaAplanada]. 
+	RGrids = [GrillaCerosAplanada, GrillaBurbujeadaAplanada, GrillaCompletaAplanada]. % Corrección devolución
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Operaciones de generación numérica %
@@ -114,14 +114,6 @@ suma_camino(Grilla, [[X | Y] | Camino], Suma):-
 suma_camino_pot_dos(Grilla, [[X | Y] | Camino], SumaPot2):-
 	suma_camino(Grilla, [[X | Y] | Camino], Suma),
 	pot_dos(Suma, SumaPot2).
-
-/**
- * max_numero(+Lista, -Max).
- *
- * Encuentra el mayor elemento de la lista Lista y lo unifica en Max.
- */
-max_numero(Lista, Max):-
-	max_list(Lista, Max). %max_list/2 existe.
 
 /**
  * ultimo(?Lista, ?X)
@@ -314,7 +306,8 @@ ubicacion_en_grilla(Fila, Columna, CantColumnas, Pos):-
  */
 max_grilla(Grilla, Max):-
 	aplanar(Grilla, Lista),
-	max_numero(Lista, Max).
+	%max_numero(Lista, Max).
+    max_list(Lista, Max).
 
 /**
  * reemplazar_ceros(+Grilla, +LimInferior, +LimSuperior, -GrillaCompleta)
@@ -561,9 +554,11 @@ aplicar_efecto(_, _, [], []).
 aplicar_efecto(Grilla, CantColumnas, [Camino | Caminos], [PrimerGrilla | GrillasSiguientes]):-
     listaPos_a_listaCoordenadas(Camino, CantColumnas, CaminoCoord),
     suma_camino_pot_dos(Grilla, CaminoCoord, Suma),
-    set_suma_grilla(Grilla, CaminoCoord, Suma, GrillaSuma),
-    borrar_ultimo(CaminoCoord, CaminoSinUltimo),
-    set_ceros_grilla(GrillaSuma, CaminoSinUltimo, PrimerGrilla),
+    pos_setear_booster(CaminoCoord, Pos), % Corrección de devolución del proyecto 1
+    set_suma_grilla(Grilla, Pos, Suma, GrillaSuma),
+    Pos = [ContenidoPos], % Corrección de devolución del proyecto 1
+    borrar_todas(ContenidoPos, CaminoCoord, CaminoSinPos), % Corrección de devolución del proyecto 1
+    set_ceros_grilla(GrillaSuma, CaminoSinPos, PrimerGrilla),
     aplicar_efecto(PrimerGrilla, CantColumnas, Caminos, GrillasSiguientes).
 
 /*
@@ -576,3 +571,21 @@ listaPos_a_listaCoordenadas([PrimerPosicion | RestoPosiciones], CantColumnas, [P
 	obtener_coordenada(PrimerPosicion, CantColumnas, F, C),
     get_coordenadas(PrimerCoordenada, F, C),
     listaPos_a_listaCoordenadas(RestoPosiciones, CantColumnas, RestoCoordenadas).
+
+/*
+ * CORRECCIÓN DEVOLUCIÓN
+ * 
+ * pos_setear_booster(+Camino, -Pos)
+ * 
+ * Dado un camino de posiciones, unifica como punico elemento de la lista Pos a la coordenada que contiene a la posición ubicada más abajo y a la derecha de la grilla.
+ */
+pos_setear_booster(Camino, [Pos]):-
+    findall(F,
+           (member(Coordenada, Camino), Coordenada = [F, _C]),
+            Filas),
+    max_list(Filas, FilaMayor),
+    findall(C,
+           (member(Coordenada, Camino), Coordenada = [FilaMayor, C]),
+            ColumnasFilaMayor),
+    max_list(ColumnasFilaMayor, ColumnaMayor),
+    Pos = [FilaMayor, ColumnaMayor].
