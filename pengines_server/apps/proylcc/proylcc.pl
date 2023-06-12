@@ -577,7 +577,7 @@ listaPos_a_listaCoordenadas([PrimerPosicion | RestoPosiciones], CantColumnas, [P
  * 
  * pos_setear_booster(+Camino, -Pos)
  * 
- * Dado un camino de posiciones, unifica como punico elemento de la lista Pos a la coordenada que contiene a la posición ubicada más abajo y a la derecha de la grilla.
+ * Dado un camino de posiciones, unifica como unico elemento de la lista Pos a la coordenada que contiene a la posición ubicada más abajo y a la derecha de la grilla.
  */
 pos_setear_booster(Camino, [Pos]):-
     findall(F,
@@ -589,3 +589,174 @@ pos_setear_booster(Camino, [Pos]):-
             ColumnasFilaMayor),
     max_list(ColumnasFilaMayor, ColumnaMayor),
     Pos = [FilaMayor, ColumnaMayor].
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+/*
+ * movida_maxima(+Grilla, +CantColumnas, -SumaCaminoMaximo, -CaminoMaximo)
+ * 
+ * Calcula el camino (CaminoMaximo) que consigue el mayor número (SumaCaminoMaximo) a partir de la configuración actual
+ */
+movida_maxima(Grilla, CantColumnas, SumaCaminoMaximo, CaminoMaximo):-
+    agrupar(Grilla, CantColumnas, GrillaAgrupada),
+    buscar_caminos_grilla(Grilla, Grilla, GrillaAgrupada, CantColumnas, 0, Caminos),
+    aplanar(Caminos, CaminosAplanados),
+    tamanio(CaminosAplanados, Tamanio),
+    Tamanio > 0,
+    !,
+    max(Grilla, GrillaAgrupada, CantColumnas, CaminosAplanados, 0, Maximos),
+    ultimo(Maximos, CaminoMaximo),
+    suma_camino_pot_dos(GrillaAgrupada, CaminoMaximo, SumaCaminoMaximo).
+movida_maxima(_Grilla, _CantColumnas, [], 0).
+
+/*
+ * buscar_caminos_grilla(+Elementos, +Grilla, +GrillaAgrupada, +CantColumnas, +Indice, -Caminos)
+ * 
+ * Busca todos los caminos que pueden formarse con la configuración actual de la grilla.
+ * - Elementos: lista que contiene los elementos de la grilla.
+ * - Grilla: análogo a Elementos; se utiliza para ir avanzando sobre la lista.
+ * - GrillaAgrupada: Elementos en representación matricial; se utilizan las tres debido a la implementación base del juego.
+ *
+ * Indice: Posicion actual de control; permite junto a CantColumnas, conocer la coordenada del elemento.
+ *
+ * Delega y hace uso de buscar_caminos_celda
+ */    
+buscar_caminos_grilla(_, [], _GrillaAgrupada, _, _, []).
+buscar_caminos_grilla(Grilla, [PrimerCelda | RestoCeldas], GrillaAgrupada, CantColumnas, Indice, [CaminoPrimerCelda | RestoCaminos]):-
+    adyacentes_validas(Grilla, GrillaAgrupada, Coordenada, CantColumnas, Adyacentes),
+    obtener_coordenada(Indice, CantColumnas, F, C),
+    get_coordenadas(Coordenada, F, C),
+    buscar_caminos_celda(Grilla, GrillaAgrupada, CantColumnas, PrimerCelda, Adyacentes, [Indice], [[F, C]], CaminoPrimerCelda),
+    length(CaminoPrimerCelda, Tamanio),
+    Tamanio > 1,
+    IndiceSiguiente is Indice + 1,
+    buscar_caminos_grilla(Grilla, RestoCeldas, GrillaAgrupada, CantColumnas, IndiceSiguiente, RestoCaminos),
+    !.
+buscar_caminos_grilla(Grilla, [_ | RestoCeldas], GrillaAgrupada, CantColumnas, Indice, RestoCaminos):-
+    IndiceSiguiente is Indice + 1,
+    buscar_caminos_grilla(Grilla, RestoCeldas, GrillaAgrupada, CantColumnas, IndiceSiguiente, RestoCaminos).
+    
+/*
+ * buscar_caminos_celda(+Elementos, +GrillaAgrupada, +CantColumnas, +PotDos, +Adyacentes, +Visitados, +Camino, -CaminosResultantes)
+ * 
+ * Busca los caminos que pasan por la posicion que alberga PotDos y suceden a Visitados.
+ * Delega la creacion del camino en crear_caminos/9
+ */    
+buscar_caminos_celda(_, _, _, _, [], _, Camino, [Camino]).
+buscar_caminos_celda(Grilla, GrillaAgrupada, CantColumnas, PotDos, [Ady | RestoAdyacentes], Visitados, Camino, CaminosResultantes):-
+    length(Camino, 1),
+    not(member(Ady, Visitados)),
+    obtener_coordenada(Ady, CantColumnas, F, C),
+    get_elemento(GrillaAgrupada, F, [C], PotDosAdyacente),
+    PotDosAdyacente =:= PotDos,
+    crear_caminos(Grilla, GrillaAgrupada, CantColumnas, PotDos, PotDosAdyacente, [Ady | RestoAdyacentes], Visitados, Camino, CaminosResultantes).
+buscar_caminos_celda(Grilla, GrillaAgrupada, CantColumnas, PotDos, [Ady | RestoAdyacentes], Visitados, Camino, CaminosResultantes):-
+    length(Camino, TamanioCamino),
+    TamanioCamino > 1,
+    not(member(Ady, Visitados)), 
+    obtener_coordenada(Ady, CantColumnas, F, C),
+    get_elemento(GrillaAgrupada, F, [C], PotDosAdyacente),
+    (PotDosAdyacente =:= PotDos ; PotDosAdyacente =:= PotDos*2),
+    crear_caminos(Grilla, GrillaAgrupada, CantColumnas, PotDos, PotDosAdyacente, [Ady | RestoAdyacentes], Visitados, Camino, CaminosResultantes).
+buscar_caminos_celda(Grilla, GrillaAgrupada, CantColumnas, PotDos, [_ | RestoAdyacentes], Visitados, Camino, CaminosResultantes):-
+    buscar_caminos_celda(Grilla, GrillaAgrupada, CantColumnas, PotDos, RestoAdyacentes, Visitados, Camino, CaminosResultantes).
+
+/*
+ * crear_caminos(+Grilla, +GrillaAgrupada, +CantColumnas, +PotDos, +PotDosAdyacente, +Adyacentes, +Visitados, +CaminoActual, -CaminosResultantes)
+ * 
+ * Crea de forma efectiva los caminos que pasan por una celda particular y son adyacentes a un elemento puntual.
+ */    
+crear_caminos(Grilla, GrillaAgrupada, CantColumnas, PotDos, PotDosAdyacente, [Ady | RestoAdyacentes], Visitados, CaminoActual, CaminosResultantes):-
+    append(Visitados, [Ady], VisitadosActualizado),
+    obtener_coordenada(Ady, CantColumnas, F, C),
+    get_coordenadas(Coordenada, F, C),
+    append(CaminoActual, [Coordenada], CaminoActualActualizado),
+    adyacentes_validas(Grilla, GrillaAgrupada, Coordenada, CantColumnas, Adyacentes),
+    buscar_caminos_celda(Grilla, GrillaAgrupada, CantColumnas, PotDosAdyacente, Adyacentes, VisitadosActualizado, CaminoActualActualizado, CaminosAux1),
+    buscar_caminos_celda(Grilla, GrillaAgrupada, CantColumnas, PotDos, RestoAdyacentes, Visitados, CaminoActual, CaminosAux2),
+    append([CaminoActualActualizado], CaminosAux1, CaminosAux),
+    append(CaminosAux, CaminosAux2, CaminosResultantes),
+    !.
+    
+/*
+ * adyacentes_validas(+Grilla, +Coord, +CantColumnas, -AdyacentesValidas)
+ * 
+ * Dada una grilla numerica representada como una lista de elementos de la grilla Grilla, una coordenada Coord y CantColumnas de la grilla, 
+ * computa y unifica en AdyacentesValidas aquellas coordenadas adyacentes a Coord que cumplen con la restricción de que alberguen una potencia de dos 
+ * igual a la alojada en Coord o inmediatamente superior.
+ */
+adyacentes_validas(GrillaPlana, GrillaMatriz, [F, C], CantColumnas, AdyacentesValidas):-
+    length(GrillaPlana, Tamanio),
+    get_elemento(GrillaMatriz, F, [C], ElementoActual),
+    indice_raiz(ElementoActual, IndiceActual),
+     
+    coordenadas_adyacentes([F, C], CantColumnas, Tamanio, Adyacentes),
+    
+    IndiceSiguiente is IndiceActual + 1,
+        
+    findall(Pos,
+            (member(Coord, Adyacentes),
+             get_coordenadas(Coord, Faux, Caux),
+             get_elemento(GrillaMatriz, Faux, [Caux], ElementoAux),
+             indice_raiz(ElementoAux, IndiceAux),
+             (IndiceAux = IndiceActual;
+              IndiceAux = IndiceSiguiente),
+              ubicacion_en_grilla(Faux, Caux, CantColumnas, Pos)),
+            AdyacentesValidas).
+    
+/*
+ * coordenadas_adyacentes(+Coordenada, +CantColumnas, +Tamanio, -Adyacentes)
+ * 
+ * Dada una coordenadas Coordenada y restricciones dimensionales (CantColumnas y Tamanio), computa y unifica en Adyacentes todas las coordenadas adyacentes a Coordenada
+ */
+coordenadas_adyacentes([F, C], CantColumnas, Tamanio, Adyacentes):-
+    FArriba is F - 1,
+    FAbajo is F + 1,
+    CIzquierda is C - 1,
+    CDerecha is C + 1,
+    C1 = [FArriba, CIzquierda],
+    C2 = [FArriba, C],
+    C3 = [FArriba, CDerecha],
+    C4 = [F, CIzquierda],
+    C5 = [F, CDerecha],
+    C6 = [FAbajo, CIzquierda],
+    C7 = [FAbajo, C],
+    C8 = [FAbajo, CDerecha],
+    check_positions([C1, C2, C3, C4, C5, C6, C7, C8], CantColumnas, Tamanio, Adyacentes).
+    
+/*
+ * check_positions(+Coordendas, +CantColumnas, +Tamanio, -CoordenadasChequeadas)
+ *
+ * Computa y unifica en CoordenadasChequeadas aquellas coordenadas pertenecientes a Coordenadas que no se caen de la matriz, 
+ * según restricciones dimensionales determinadas por CantColumnas y Tamanio
+ */
+check_positions([[F, C]], CantColumnas, Tamanio, [[F, C]]):-
+    (F >= 0, F < Tamanio/CantColumnas,
+        C >= 0, C < CantColumnas),
+    !.
+check_positions([[_F, _C]], _, _, []).
+check_positions([[F, C] | R], CantColumnas, Tamanio, [[F, C] | R_ok]):-
+    CantFilas is Tamanio/CantColumnas,
+    (F >= 0, F < CantFilas,
+        C >= 0, C < CantColumnas,
+    check_positions(R, CantColumnas, Tamanio, R_ok)),
+    !.
+check_positions([[_F, _C] | R], CantColumnas, Tamanio, R_ok):-
+    check_positions(R, CantColumnas, Tamanio, R_ok).
+
+/*
+ * max(+Grilla, +GrillaAgrupada, +CantColumnas, +Maximos, +MaximoActual, -Maximos)
+ * 
+ * Dada una grilla con una cierta configuración y una lista Maximos que contiene caminos, compara el valor que computa cada uno de ellos con MaximoActual
+ * Unifica en Maximos los caminos que producen una suma mayor que MaximoActual
+ */  
+max(_, _, _, [], _, []).
+max(Grilla, GrillaAgrupada, CantColumnas, [PrimerMaximo | Maximos], MaximoActual, [PrimerMaximo | NuevoCamino]):-
+    suma_camino_pot_dos(GrillaAgrupada, PrimerMaximo, SumaCaminoMaximo),
+    SumaCaminoMaximo > MaximoActual,
+    max(Grilla, GrillaAgrupada, CantColumnas, Maximos, SumaCaminoMaximo, NuevoCamino),
+    !.
+max(Grilla, GrillaAgrupada, CantColumnas, [_ | Maximos], MaximoActual, Maximo):-
+    max(Grilla, GrillaAgrupada, CantColumnas, Maximos, MaximoActual, Maximo).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
