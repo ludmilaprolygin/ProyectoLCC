@@ -35,6 +35,30 @@ function Game() {
       
     }
 
+    function handleClickMovidaMaxima() {
+      const gridS = JSON.stringify(grid);
+      const queryS = "movida_maxima(" + gridS + "," + numOfColumns + ", SumaPath, Path)";    
+      pengine.query(queryS, (success, response) => {        
+        if (success) { 
+          if(response['Path'].length === 0)
+            gameOver();
+          else
+          {
+            setSuma(smallerPow2GreaterOrEqualThan(joinResult(response['Path'], grid, numOfColumns)));
+            setPath(response['Path']);
+          }
+        } else {
+          setWaiting(false);
+        }        
+      }); 
+      
+    }  
+
+    function gameOver()
+    {
+
+    }
+
   /**
    * Called when the server was successfully initialized
    */
@@ -113,7 +137,7 @@ function Game() {
     if (restRGrids.length > 0) {
       setTimeout(() => {
         animateEffect(restRGrids);
-      }, 500);
+      }, 900);
     } else {
       setWaiting(false);
     }
@@ -142,7 +166,8 @@ function Game() {
         onPathChange={onPathChange}
         onDone={onPathDone}
       />
-      <button className="booster-button" onClick={handleClickBooster}> 💣 Colapsar iguales 💣 </button>
+      <button className="funcionalidades-button" onClick={handleClickMovidaMaxima}> camino maximo </button>
+      <button className="funcionalidades-button" onClick={handleClickBooster}> 💣 Colapsar iguales 💣 </button>
     </div>
   );
 }

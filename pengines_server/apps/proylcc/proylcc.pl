@@ -306,7 +306,6 @@ ubicacion_en_grilla(Fila, Columna, CantColumnas, Pos):-
  */
 max_grilla(Grilla, Max):-
 	aplanar(Grilla, Lista),
-	%max_numero(Lista, Max).
     max_list(Lista, Max).
 
 /**
@@ -363,12 +362,7 @@ subir_ceros([Fila | Resto], [FilaBurbujeada | RestoBurbujeado]):-
  * en la grilla Grid, con número de columnas NumOfColumns. El número 0 representa que la celda está vacía. 
  */
 booster(Grid, NumOfColumns, RGrids):-
-    tamanio(Grid, CantElementos),
-    agrupar(Grid, NumOfColumns, GrillaMatriz),
-    buscar_caminos_boostear(Grid, GrillaMatriz, 0, CantElementos, NumOfColumns, Caminos), 
-    eliminar_listas_un_elemento(Caminos, CaminosFinales), 
-    buscar_grupos_booster(CaminosFinales, CaminosFinales, GruposRepetidos),
-    concatenar_caminos(GruposRepetidos, GruposCaminos),
+    grupos_iguales(Grid, NumOfColumns, GrillaMatriz, GruposCaminos),
     aplicar_efecto(GrillaMatriz, NumOfColumns, GruposCaminos, GrillasEvolucion),
     ultimo(GrillasEvolucion, GrillaCeros),
     burbujear_ceros(GrillaCeros, GrillaBurbujeada),
@@ -378,6 +372,20 @@ booster(Grid, NumOfColumns, RGrids):-
     aplanar(GrillaBurbujeada, GrillaBurbujeadaAplanada),
     aplanar(GrillaCompleta, GrillaCompletaAplanada),
     RGrids = [GrillaCerosAplanada, GrillaBurbujeadaAplanada, GrillaCompletaAplanada].
+
+/*
+ * grupos_iguales(+Grid, +NumOfColumns, -GrillaMatriz, -Grupos)
+ * 
+ * Unifica en Grupos, a partir de Grid y NumOfColumns, los elementos que son iguales y adyacentes de la grilla.
+ * Unifica en GrillaMatriz los elementos de Grid en forma matricial.
+ */
+grupos_iguales(Grid, NumOfColumns, GrillaMatriz, Grupos):-
+    tamanio(Grid, CantElementos),
+    agrupar(Grid, NumOfColumns, GrillaMatriz),
+    buscar_caminos_boostear(Grid, GrillaMatriz, 0, CantElementos, NumOfColumns, Caminos),
+    eliminar_listas_un_elemento(Caminos, CaminosFinales),
+    buscar_grupos_booster(CaminosFinales, CaminosFinales, GruposRepetidos),
+    concatenar_caminos(GruposRepetidos, Grupos).
 
 /*
  * buscar_caminos_boostear(+Elementos, +Grilla, +Posicion, +CantElementos, +CantColumnas, -Caminos)

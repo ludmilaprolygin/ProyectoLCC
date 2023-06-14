@@ -100,7 +100,7 @@ body {
   transform: rotate(45deg);
 }
 
-.booster-button {
+.funcionalidades-button {
   background-color: rgba(236, 137, 59, 0.8);
   color: white;
   border-radius: 5px;
@@ -113,10 +113,10 @@ body {
   text-transform: uppercase;
   transition: all 0.3s ease-in-out;
   height: 70px;
-  width: 390px;
+  width: 130px;
 }
 
-.booster-button:hover {
+.funcionalidades-button:hover {
   background-color: rgba(36, 157, 209, 0.329);
 }
 
