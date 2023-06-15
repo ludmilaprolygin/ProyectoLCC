@@ -615,7 +615,7 @@ movida_maxima(Grilla, CantColumnas, SumaCaminoMaximo, CaminoMaximo):-
     max(Grilla, GrillaAgrupada, CantColumnas, CaminosAplanados, 0, Maximos),
     ultimo(Maximos, CaminoMaximo),
     suma_camino_pot_dos(GrillaAgrupada, CaminoMaximo, SumaCaminoMaximo).
-movida_maxima(_Grilla, _CantColumnas, [], 0).
+movida_maxima(_Grilla, _CantColumnas, 0, []).
 
 /*
  * buscar_caminos_grilla(+Elementos, +Grilla, +GrillaAgrupada, +CantColumnas, +Indice, -Caminos)

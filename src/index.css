@@ -100,11 +100,11 @@ body {
   transform: rotate(45deg);
 }
 
-.funcionalidades-button {
+.funcionalidades-button, .booster-button {
   background-color: rgba(236, 137, 59, 0.8);
   color: white;
   border-radius: 5px;
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: 500;
   padding: 0.5rem 1rem;
   border: none;
@@ -114,12 +114,19 @@ body {
   transition: all 0.3s ease-in-out;
   height: 70px;
   width: 130px;
+  margin: 5px;
+  transition: background-color 0.3s ease;
 }
 
-.funcionalidades-button:hover {
+.funcionalidades-button:hover{
   background-color: rgba(36, 157, 209, 0.329);
 }
 
 .bomba::before{
   content: \1F4A3;
+}
+
+.contenedor-botones
+{
+  display: flex;
 }

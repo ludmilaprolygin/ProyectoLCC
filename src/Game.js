@@ -166,8 +166,10 @@ function Game() {
         onPathChange={onPathChange}
         onDone={onPathDone}
       />
-      <button className="funcionalidades-button" onClick={handleClickMovidaMaxima}> camino maximo </button>
-      <button className="funcionalidades-button" onClick={handleClickBooster}> 💣 Colapsar iguales 💣 </button>
+      <div className="contenedor-botones">
+        <button className="funcionalidades-button" onClick={handleClickMovidaMaxima}> camino maximo </button>
+        <button className="funcionalidades-button" onClick={handleClickBooster}> colapsar iguales </button>
+      </div>
     </div>
   );
 }
