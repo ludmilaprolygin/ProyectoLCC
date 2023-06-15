@@ -55,7 +55,16 @@ function Game() {
     }  
 
     function handleClickMaximoAdyacente() {
-      
+      const gridS = JSON.stringify(grid);
+      const queryS = "maximo_adyacente(" + gridS + "," + numOfColumns + ", SumaPath, Path)";    
+      pengine.query(queryS, (success, response) => {        
+        if (success) { 
+          setSuma(smallerPow2GreaterOrEqualThan(joinResult(response['Path'], grid, numOfColumns)));
+            setPath(response['Path']);
+        } else {
+          setWaiting(false);
+        }        
+      }); 
     }
 
     function gameOver()

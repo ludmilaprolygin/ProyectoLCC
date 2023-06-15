@@ -804,6 +804,8 @@ maximo_adyacente(Grilla, CantColumnas, SumaMaximoAdyacente, CaminoAdyacente):-
     TamanioCaminoRetorno > 0,
     !,
     suma_camino_pot_dos(GrillaAgrupada, CaminoAdyacente, SumaMaximoAdyacente).
+%Agregar que, si es mayor que cero, aplico el efecto y esa posicion tiene que quedar pegada a un elemento que funcione la propiedad
+%Agregar que, si es cero, pruebo directamente con la gravedad
 
 encontrar_camino_retornar(GrillaAgrupada, CaminosConSumaAdyacentes, CaminoEfectivo):-
     aplanar(GrillaAgrupada, GrillaLlana),
