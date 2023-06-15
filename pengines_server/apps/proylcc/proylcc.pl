@@ -769,6 +769,12 @@ max(Grilla, GrillaAgrupada, CantColumnas, [_ | Maximos], MaximoActual, Maximo):-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+/*
+ * maximo_adyacente(+Grilla, +CantColumnas, -SumaMaximoAdyacente, -CaminoAdyacente)
+ * 
+ *  Calcule y y unifica en CaminoAdyacente el camino que consiga generar el número más grande posible adyacente a otro igual (preexistente)
+ *  SumaMaximoAdyacente unifica con la menor potencia de dos mayor o igual a la suma del camino CaminoAdyacente
+ */
 maximo_adyacente(Grilla, CantColumnas, SumaMaximoAdyacente, CaminoAdyacente):-
     agrupar(Grilla, CantColumnas, GrillaAgrupada),
     buscar_caminos_grilla(Grilla, Grilla, GrillaAgrupada, CantColumnas, 0, Caminos),
@@ -807,6 +813,12 @@ maximo_adyacente(Grilla, CantColumnas, SumaMaximoAdyacente, CaminoAdyacente):-
 %Agregar que, si es mayor que cero, aplico el efecto y esa posicion tiene que quedar pegada a un elemento que funcione la propiedad
 %Agregar que, si es cero, pruebo directamente con la gravedad
 
+/*
+ * encontrar_caminos_retornar(+GrillaAgrupada, +CaminosConSumaAdyacentes, -CaminoEfectivo)
+ * 
+ * A partir de la grilla de elementos en forma matricial GrillaAgrupada y una lista CaminosConSumaAdyacentes (una lista que contiene caminos cuya suma
+ *   es igual al valor de alguno de los elementos adyacentes al ultimo bloque), se encuentra el que efectivamente va a mostrarse (el que compute mayor valor)
+ */
 encontrar_camino_retornar(GrillaAgrupada, CaminosConSumaAdyacentes, CaminoEfectivo):-
     aplanar(GrillaAgrupada, GrillaLlana),
     max_list(GrillaLlana, Max),
@@ -818,6 +830,14 @@ encontrar_camino_retornar(GrillaAgrupada, CaminosConSumaAdyacentes, CaminoEfecti
     sort(0, @>, PotenciasValidas, PotenciasValidasOrdenadas),  
     camino_retornar(PotenciasValidasOrdenadas, CaminosConSumaAdyacentes, GrillaAgrupada, CaminoEfectivo).
 
+/*
+ * camino_retornar(+PotenciasDos, +CaminosCandidatos, +GrillaAgrupada, -CaminoRetornar)
+ * 
+ * A partir de las potencias de dos en juego en el tablero PotenciasDos y los posibles CaminosCandidatos a ser retornados coo CaminoMaximoAdyacente,
+ *   con GrillaAgrupada la grilla de elementos en forma matricial, computa y unifica en CaminoRetornar el CaminoMaximoAdyacente efectivo.
+ *
+ * El cómputo lo realiza teniendo en cuenta las potencias de dos en juego; si no hay camino que satisfaga la mayor, prueba con la menor potencia de dos siguiente.
+ */
 camino_retornar([], _, _, []).
 camino_retornar([PotMayor | Potencias], CaminosCandidatos, GrillaAgrupada, CaminoRetornar):-
     findall(C,
@@ -829,6 +849,12 @@ camino_retornar([PotMayor | Potencias], CaminosCandidatos, GrillaAgrupada, Camin
     ((T > 0, last(Validos, CaminoRetornar));
     camino_retornar(Potencias, CaminosCandidatos, GrillaAgrupada, CaminoRetornar)).
 
+/*
+ * tiene_adyacente_valido(+GrillaAgrupada, +CantColumnas, +Tamanio, +Camino)
+ * 
+ * Dado un Camino y las dimensiones CantColumnas y Tamanio de GrillaAgrupada, la grilla de elementos de forma matricial,
+ *   se determina si, adyacente al último elemento de Camino, hay un elemento que sea equivalente a la potencia de dos de la suma del camino.
+ */
 tiene_adyacente_valido(GrillaAgrupada, CantColumnas, Tamanio, Camino):-
     last(Camino, [F, C]),
     coordenadas_adyacentes([F, C], CantColumnas, Tamanio, Ady),
