@@ -768,3 +768,74 @@ max(Grilla, GrillaAgrupada, CantColumnas, [_ | Maximos], MaximoActual, Maximo):-
     max(Grilla, GrillaAgrupada, CantColumnas, Maximos, MaximoActual, Maximo).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+maximo_adyacente(Grilla, CantColumnas, SumaMaximoAdyacente, CaminoAdyacente):-
+    agrupar(Grilla, CantColumnas, GrillaAgrupada),
+    buscar_caminos_grilla(Grilla, Grilla, GrillaAgrupada, CantColumnas, 0, Caminos),
+    aplanar(Caminos, CaminosAplanados),
+    tamanio(CaminosAplanados, Tamanio),
+    Tamanio > 0,
+    !,
+    max_list(Grilla, MaxPotencia),
+    
+    %Elimino los caminos de un solo elemento
+    findall(C,
+            (member(C, CaminosAplanados),
+             length(C, T),
+             T > 1),
+            CaminosAplanadosAux),
+    
+    %Elimino los caminos que computan sumas superiores al mayor elemento de la grilla
+    findall(C,
+            (member(C, CaminosAplanadosAux),
+             suma_camino_pot_dos(GrillaAgrupada, C, SumaC),
+             (SumaC < MaxPotencia; SumaC = MaxPotencia)),
+            CaminosSumaMenoresMaximoRepetidos),
+    
+    elimina_repetidos(CaminosSumaMenoresMaximoRepetidos, CaminosSumaMenoresMaximo),
+    
+    findall(C,
+            (member(C, CaminosSumaMenoresMaximo),
+             tiene_adyacente_valido(GrillaAgrupada, CantColumnas, Tamanio, C)),
+            CaminosConAdyacentesValidos),
+    
+    encontrar_camino_retornar(GrillaAgrupada, CaminosConAdyacentesValidos, CaminoAdyacente),
+    length(CaminoAdyacente, TamanioCaminoRetorno),
+    TamanioCaminoRetorno > 0,
+    !,
+    suma_camino_pot_dos(GrillaAgrupada, CaminoAdyacente, SumaMaximoAdyacente).
+
+encontrar_camino_retornar(GrillaAgrupada, CaminosConSumaAdyacentes, CaminoEfectivo):-
+    aplanar(GrillaAgrupada, GrillaLlana),
+    max_list(GrillaLlana, Max),
+    findall(Pot,
+            (member(Pot, GrillaLlana),
+             (Pot < Max; Pot = Max), Pot > 0),
+            PotenciasValidas),
+    %Ordena las potencias de dos que están en la grilla de mayor a menor
+    sort(0, @>, PotenciasValidas, PotenciasValidasOrdenadas),  
+    camino_retornar(PotenciasValidasOrdenadas, CaminosConSumaAdyacentes, GrillaAgrupada, CaminoEfectivo).
+
+camino_retornar([], _, _, []).
+camino_retornar([PotMayor | Potencias], CaminosCandidatos, GrillaAgrupada, CaminoRetornar):-
+    findall(C,
+            (member(C, CaminosCandidatos),
+             suma_camino_pot_dos(GrillaAgrupada, C, SumaC),
+             SumaC =:= PotMayor),
+            Validos),
+    length(Validos, T),
+    ((T > 0, last(Validos, CaminoRetornar));
+    camino_retornar(Potencias, CaminosCandidatos, GrillaAgrupada, CaminoRetornar)).
+
+tiene_adyacente_valido(GrillaAgrupada, CantColumnas, Tamanio, Camino):-
+    last(Camino, [F, C]),
+    coordenadas_adyacentes([F, C], CantColumnas, Tamanio, Ady),
+    suma_camino_pot_dos(GrillaAgrupada, Camino, SumaC),
+    findall(Coord,
+            (member(Coord, Ady),
+             get_coordenadas(Coord, FC, CC),
+             get_elemento(GrillaAgrupada, FC, [CC], E),
+             E =:= SumaC),
+            AdyValidas),
+    length(AdyValidas, AdyTamanio),
+    AdyTamanio > 0.

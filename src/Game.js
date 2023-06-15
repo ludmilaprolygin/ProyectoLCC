@@ -54,6 +54,10 @@ function Game() {
       
     }  
 
+    function handleClickMaximoAdyacente() {
+      
+    }
+
     function gameOver()
     {
 
@@ -168,7 +172,8 @@ function Game() {
       />
       <div className="contenedor-botones">
         <button className="funcionalidades-button" onClick={handleClickMovidaMaxima}> camino maximo </button>
-        <button className="funcionalidades-button" onClick={handleClickBooster}> colapsar iguales </button>
+        <button className="booster-button" onClick={handleClickBooster}></button>
+        <button className="funcionalidades-button" onClick={handleClickMaximoAdyacente}> adyacente maximo </button>
       </div>
     </div>
   );

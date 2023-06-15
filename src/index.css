@@ -113,13 +113,22 @@ body {
   text-transform: uppercase;
   transition: all 0.3s ease-in-out;
   height: 70px;
-  width: 130px;
+  width: 125px;
   margin: 5px;
   transition: background-color 0.3s ease;
 }
 
-.funcionalidades-button:hover{
+.funcionalidades-button:hover, .booster-button:hover{
   background-color: rgba(36, 157, 209, 0.329);
+}
+
+
+.booster-button::before {
+  content: "colapsar iguales";
+}
+  
+.booster-button:hover::before {
+  content: "💣💣💣";
 }
 
 .bomba::before{
