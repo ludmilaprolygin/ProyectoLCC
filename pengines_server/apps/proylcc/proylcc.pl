@@ -779,7 +779,7 @@ maximo_adyacente(Grilla, CantColumnas, SumaMaximoAdyacente, CaminoAdyacente):-
     agrupar(Grilla, CantColumnas, GrillaAgrupada),
     buscar_caminos_grilla(Grilla, Grilla, GrillaAgrupada, CantColumnas, 0, Caminos),
     aplanar(Caminos, CaminosAplanados),
-    tamanio(CaminosAplanados, Tamanio),
+    length(CaminosAplanados, Tamanio),
     Tamanio > 0,
     !,
     max_list(Grilla, MaxPotencia),
@@ -800,18 +800,11 @@ maximo_adyacente(Grilla, CantColumnas, SumaMaximoAdyacente, CaminoAdyacente):-
     
     elimina_repetidos(CaminosSumaMenoresMaximoRepetidos, CaminosSumaMenoresMaximo),
     
-    findall(C,
-            (member(C, CaminosSumaMenoresMaximo),
-             tiene_adyacente_valido(GrillaAgrupada, CantColumnas, Tamanio, C)),
-            CaminosConAdyacentesValidos),
-    
-    encontrar_camino_retornar(GrillaAgrupada, CaminosConAdyacentesValidos, CaminoAdyacente),
+    encontrar_camino_retornar(GrillaAgrupada, CantColumnas, CaminosSumaMenoresMaximo, CaminoAdyacente),
     length(CaminoAdyacente, TamanioCaminoRetorno),
     TamanioCaminoRetorno > 0,
     !,
     suma_camino_pot_dos(GrillaAgrupada, CaminoAdyacente, SumaMaximoAdyacente).
-%Agregar que, si es mayor que cero, aplico el efecto y esa posicion tiene que quedar pegada a un elemento que funcione la propiedad
-%Agregar que, si es cero, pruebo directamente con la gravedad
 
 /*
  * encontrar_caminos_retornar(+GrillaAgrupada, +CaminosConSumaAdyacentes, -CaminoEfectivo)
@@ -819,7 +812,7 @@ maximo_adyacente(Grilla, CantColumnas, SumaMaximoAdyacente, CaminoAdyacente):-
  * A partir de la grilla de elementos en forma matricial GrillaAgrupada y una lista CaminosConSumaAdyacentes (una lista que contiene caminos cuya suma
  *   es igual al valor de alguno de los elementos adyacentes al ultimo bloque), se encuentra el que efectivamente va a mostrarse (el que compute mayor valor)
  */
-encontrar_camino_retornar(GrillaAgrupada, CaminosConSumaAdyacentes, CaminoEfectivo):-
+encontrar_camino_retornar(GrillaAgrupada, CantColumnas, CaminosConSumaAdyacentes, CaminoEfectivo):-
     aplanar(GrillaAgrupada, GrillaLlana),
     max_list(GrillaLlana, Max),
     findall(Pot,
@@ -828,7 +821,7 @@ encontrar_camino_retornar(GrillaAgrupada, CaminosConSumaAdyacentes, CaminoEfecti
             PotenciasValidas),
     %Ordena las potencias de dos que están en la grilla de mayor a menor
     sort(0, @>, PotenciasValidas, PotenciasValidasOrdenadas),  
-    camino_retornar(PotenciasValidasOrdenadas, CaminosConSumaAdyacentes, GrillaAgrupada, CaminoEfectivo).
+    camino_retornar(PotenciasValidasOrdenadas, CaminosConSumaAdyacentes, GrillaAgrupada, CantColumnas, CaminoEfectivo).
 
 /*
  * camino_retornar(+PotenciasDos, +CaminosCandidatos, +GrillaAgrupada, -CaminoRetornar)
@@ -838,16 +831,48 @@ encontrar_camino_retornar(GrillaAgrupada, CaminosConSumaAdyacentes, CaminoEfecti
  *
  * El cómputo lo realiza teniendo en cuenta las potencias de dos en juego; si no hay camino que satisfaga la mayor, prueba con la menor potencia de dos siguiente.
  */
-camino_retornar([], _, _, []).
-camino_retornar([PotMayor | Potencias], CaminosCandidatos, GrillaAgrupada, CaminoRetornar):-
+camino_retornar([], _, _, _, []).
+camino_retornar([PotMayor | Potencias], CaminosCandidatos, GrillaAgrupada, CantColumnas, CaminoRetornar):-
     findall(C,
             (member(C, CaminosCandidatos),
              suma_camino_pot_dos(GrillaAgrupada, C, SumaC),
-             SumaC =:= PotMayor),
-            Validos),
-    length(Validos, T),
-    ((T > 0, last(Validos, CaminoRetornar));
-    camino_retornar(Potencias, CaminosCandidatos, GrillaAgrupada, CaminoRetornar)).
+             SumaC =:= PotMayor,
+             validar_resolucion_camino(GrillaAgrupada, CantColumnas, C)),
+            CandidatosPotencia),
+    length(CandidatosPotencia, T),
+    ((T > 0, last(CandidatosPotencia, CaminoRetornar));
+    camino_retornar(Potencias, CaminosCandidatos, GrillaAgrupada, CantColumnas, CaminoRetornar)).
+    
+/*
+ * validar_resolucion_camino(+GrillaAgrupada, +CantColumnas, +Camino)
+ * 
+ * Determina si el camino Camino produce un resultado valido para la funcionalidad maximo_adyacente
+ */
+validar_resolucion_camino(GrillaAgrupada, CantColumnas, Camino):-
+    aplanar(GrillaAgrupada, GrillaPlana),
+    length(GrillaPlana, T),
+    suma_camino_pot_dos(GrillaAgrupada, Camino, Suma),
+    virtualizar_jugada(GrillaAgrupada, Camino, GrillaJugadaVirtual),
+    burbujear_ceros(GrillaJugadaVirtual, GrillaBurbujeada),
+    coordenada_final_resolucion(Camino, CoordenadaResultante),
+	tiene_adyacente_valido(GrillaBurbujeada, CantColumnas, T, [CoordenadaResultante], Suma).
+    
+/*
+ * coordenada_final_resolucion(+Camino, -CoordenadaFinal)
+ * 
+ * Computa y unifica en CoordenadaFinal la coordenada donde termina posicionada la celda que contiene la suma de Camino
+ */
+coordenada_final_resolucion(Camino, CoordenadaFinal):-
+    last(Camino, Ultima),
+    get_coordenadas(Ultima, F, C),
+    findall(Coordenada,
+            (member(Coordenada, Camino),
+             get_coordenadas(Coordenada, FC, CC),
+             C =:= CC, F < FC),
+            CoordMismaColumna),
+    length(CoordMismaColumna, CantGravedad),
+    NuevaFila is F + CantGravedad,
+    CoordenadaFinal = [NuevaFila, C].
 
 /*
  * tiene_adyacente_valido(+GrillaAgrupada, +CantColumnas, +Tamanio, +Camino)
@@ -855,10 +880,9 @@ camino_retornar([PotMayor | Potencias], CaminosCandidatos, GrillaAgrupada, Camin
  * Dado un Camino y las dimensiones CantColumnas y Tamanio de GrillaAgrupada, la grilla de elementos de forma matricial,
  *   se determina si, adyacente al último elemento de Camino, hay un elemento que sea equivalente a la potencia de dos de la suma del camino.
  */
-tiene_adyacente_valido(GrillaAgrupada, CantColumnas, Tamanio, Camino):-
+tiene_adyacente_valido(GrillaAgrupada, CantColumnas, Tamanio, Camino, SumaC):-
     last(Camino, [F, C]),
     coordenadas_adyacentes([F, C], CantColumnas, Tamanio, Ady),
-    suma_camino_pot_dos(GrillaAgrupada, Camino, SumaC),
     findall(Coord,
             (member(Coord, Ady),
              get_coordenadas(Coord, FC, CC),
@@ -866,4 +890,17 @@ tiene_adyacente_valido(GrillaAgrupada, CantColumnas, Tamanio, Camino):-
              E =:= SumaC),
             AdyValidas),
     length(AdyValidas, AdyTamanio),
-    AdyTamanio > 0.
+    AdyTamanio > 0,
+    !.
+
+ /*
+  * virtualizar_jugada(+GrillaAgrupada, +Camino, -GrillaVirtual)
+  *
+  * Computa y unifica en GrillaVirtual cómo quedaría GrillaAgrupada luego de jugar el camino Camino
+  */   
+virtualizar_jugada(GrillaAgrupada, Camino, GrillaVirtual):-
+    suma_camino_pot_dos(GrillaAgrupada, Camino, Suma),
+    last(Camino, Coord),
+    set_suma_grilla(GrillaAgrupada, [Coord], Suma, GrillaSuma),
+    borrar_ultimo(Camino, CaminoSinPos),
+    set_ceros_grilla(GrillaSuma, CaminoSinPos, GrillaVirtual).
