@@ -40,18 +40,12 @@ function Game() {
       const queryS = "movida_maxima(" + gridS + "," + numOfColumns + ", SumaPath, Path)";    
       pengine.query(queryS, (success, response) => {        
         if (success) { 
-          if(response['Path'].length === 0)
-            gameOver();
-          else
-          {
-            setSuma(smallerPow2GreaterOrEqualThan(joinResult(response['Path'], grid, numOfColumns)));
-            setPath(response['Path']);
-          }
+          setSuma(smallerPow2GreaterOrEqualThan(joinResult(response['Path'], grid, numOfColumns)));
+          setPath(response['Path']);
         } else {
           setWaiting(false);
         }        
       }); 
-      
     }  
 
     function handleClickMaximoAdyacente() {
@@ -60,16 +54,11 @@ function Game() {
       pengine.query(queryS, (success, response) => {        
         if (success) { 
           setSuma(smallerPow2GreaterOrEqualThan(joinResult(response['Path'], grid, numOfColumns)));
-            setPath(response['Path']);
+          setPath(response['Path']);
         } else {
           setWaiting(false);
         }        
       }); 
-    }
-
-    function gameOver()
-    {
-
     }
 
   /**
@@ -150,7 +139,7 @@ function Game() {
     if (restRGrids.length > 0) {
       setTimeout(() => {
         animateEffect(restRGrids);
-      }, 900);
+      }, 450);
     } else {
       setWaiting(false);
     }
